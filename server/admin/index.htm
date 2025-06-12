@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stylist Dashboard</title>
+  <!-- AdminLTE CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Кастомные стили */
+    .card {
+      margin-top: 20px;
+    }
+    .table img {
+      max-width: 50px;
+      border-radius: 4px;
+    }
+    .selected-item {
+      background-color: #e9ecef;
+      border: 2px solid #007bff;
+    }
+    .form-section {
+      display: none;
+    }
+    .form-section.active {
+      display: block;
+    }
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .item-card {
+      cursor: pointer;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .item-card:hover {
+      background-color: #f8f9fa;
+    }
+  </style>
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+
+  <!-- Главное меню -->
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Боковое меню -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <div class="sidebar">
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="info">
+          <a href="#profile" class="d-block" onclick="showSection('profile')">Профиль стилиста</a>
+        </div>
+      </div>
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+          <li class="nav-item">
+            <a href="#clothes" class="nav-link" onclick="showSection('clothes')">
+              <i class="nav-icon fas fa-tshirt"></i>
+              <p>Одежда</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#outfits" class="nav-link" onclick="showSection('outfits')">
+              <i class="nav-icon fas fa-vest"></i>
+              <p>Аутфиты</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#capsules" class="nav-link" onclick="showSection('capsules')">
+              <i class="nav-icon fas fa-suitcase"></i>
+              <p>Капсулы</p>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Основной контент -->
+  <div class="content-wrapper">
+    <div class="content">
+      <div class="container-fluid">
+        <!-- Секция "Одежда" -->
+        <div id="clothes" class="form-section active">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Список одежды</h3>
+              <button class="btn btn-primary float-right" data-toggle="modal" data-target="#addClothModal">Добавить</button>
+            </div>
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Тип</th>
+                    <th>Сезон 1</th>
+                    <th>Сезон 2</th>
+                    <th>Изображение</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Черное платье</td>
+                    <td>Платье</td>
+                    <td>Лето</td>
+                    <td>Осень</td>
+                    <td><img src="https://via.placeholder.com/50" alt="Черное платье"></td>
+                    <td>
+                      <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editClothModal">Изменить</button>
+                      <button class="btn btn-sm btn-danger">Удалить</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>Синие джинсы</td>
+                    <td>Брюки</td>
+                    <td>Зима</td>
+                    <td>Весна</td>
+                    <td><img src="https://via.placeholder.com/50" alt="Синие джинсы"></td>
+                    <td>
+                      <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editClothModal">Изменить</button>
+                      <button class="btn btn-sm btn-danger">Удалить</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Секция "Аутфиты" -->
+        <div id="outfits" class="form-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Список аутфитов</h3>
+              <button class="btn btn-primary float-right" data-toggle="modal" data-target="#addOutfitModal">Создать аутфит</button>
+            </div>
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Состав</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Летний комплект</td>
+                    <td>Платье, Туфли, Сумка</td>
+                    <td>
+                      <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editOutfitModal">Изменить</button>
+                      <button class="btn btn-sm btn-danger">Удалить</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Секция "Капсулы" -->
+        <div id="capsules" class="form-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Список капсул</h3>
+              <button class="btn btn-primary float-right" data-toggle="modal" data-target="#addCapsuleModal">Создать капсулу</button>
+            </div>
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Состав</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Деловой гардероб</td>
+                    <td>3 аутфита</td>
+                    <td>
+                      <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editCapsuleModal">Изменить</button>
+                      <button class="btn btn-sm btn-danger">Удалить</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Секция "Профиль" -->
+        <div id="profile" class="form-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Настройки профиля</h3>
+            </div>
+            <div class="card-body">
+              <form>
+                <div class="form-group">
+                  <label>Текущий пароль</label>
+                  <input type="password" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Новый пароль</label>
+                  <input type="password" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label>Повторите пароль</label>
+                  <input type="password" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно добавления одежды -->
+<div class="modal fade" id="addClothModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Добавить одежду</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label>Название</label>
+            <input type="text" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Тип</label>
+            <select class="form-control">
+              <option>Платье</option>
+              <option>Брюки</option>
+              <option>Футболка</option>
+              <option>Юбка</option>
+              <option>Пиджак</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Сезон 1</label>
+            <select class="form-control">
+              <option>Лето</option>
+              <option>Зима</option>
+              <option>Весна</option>
+              <option>Осень</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Сезон 2</label>
+            <select class="form-control">
+              <option>Лето</option>
+              <option>Зима</option>
+              <option>Весна</option>
+              <option>Осень</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Изображение</label>
+            <input type="file" class="form-control">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Сохранить</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно создания аутфита -->
+<div class="modal fade" id="addOutfitModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Создать аутфит</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Название аутфита</label>
+          <input type="text" class="form-control">
+        </div>
+        <h5>Выберите одежду:</h5>
+        <div class="item-grid">
+          <div class="item-card">
+            <img src="https://via.placeholder.com/50" alt="Платье">
+            <div>Черное платье</div>
+          </div>
+          <div class="item-card">
+            <img src="https://via.placeholder.com/50" alt="Джинсы">
+            <div>Синие джинсы</div>
+          </div>
+          <div class="item-card">
+            <img src="https://via.placeholder.com/50" alt="Футболка">
+            <div>Белая футболка</div>
+          </div>
+          <div class="item-card">
+            <img src="https://via.placeholder.com/50" alt="Пиджак">
+            <div>Черный пиджак</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Сохранить аутфит</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Подключаем jQuery и AdminLTE JS (только для модальных окон) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+
+<script>
+// Простейшая функция для переключения между секциями
+function showSection(sectionId) {
+  document.querySelectorAll('.form-section').forEach(section => {
+    section.classList.remove('active');
+  });
+  document.getElementById(sectionId).classList.add('active');
+  
+  // Обновляем активный пункт меню
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  document.querySelector(`a[href="#${sectionId}"]`).classList.add('active');
+}
+
+// Эмуляция выбора элементов (можно удалить, если не нужны hover-эффекты)
+document.addEventListener('DOMContentLoaded', function() {
+  const items = document.querySelectorAll('.item-card');
+  items.forEach(item => {
+    item.addEventListener('click', function() {
+      this.classList.toggle('selected-item');
+    });
+  });
+});
+</script>
+</body>
+</html>
