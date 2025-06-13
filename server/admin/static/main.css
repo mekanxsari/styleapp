@@ -1,40 +1,20 @@
- .card {
-    margin-top: 20px;
- }
+.form-control.search {
+    width: 450px;
+}
 
- .table img {
-    max-width: 50px;
-    border-radius: 4px;
- }
+.form-control.search-select {
+    width: 200px;
+}
 
- .selected-item {
-    background-color: #e9ecef;
-    border: 2px solid #007bff;
- }
+.content-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
 
- .form-section {
-    display: none;
- }
+.main-header {
+    margin-left: 0px !important;
+}
 
- .form-section.active {
-    display: block;
- }
-
- .item-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    margin-bottom: 20px;
- }
-
- .item-card {
-    cursor: pointer;
-    padding: 10px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    text-align: center;
- }
-
- .item-card:hover {
-    background-color: #f8f9fa;
- }
+.navbar-brand {
+    margin-left: 50px;
+}
