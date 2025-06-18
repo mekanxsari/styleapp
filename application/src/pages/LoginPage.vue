@@ -51,6 +51,11 @@ export default {
       const userObj = parseInitData(rawInitData);
       const alias = userObj?.username;
 
+      if (alias) {
+        this.error = alias;
+        return;
+      }
+
       try {
         const response = await fetch(`${API_URL}/auth`, {
           method: 'POST',
