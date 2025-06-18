@@ -2,7 +2,6 @@
   <div class="auth-container">
     <div class="login-container">
       <div class="space"></div>
-
       <div class="logo">
         <img src="/public/images/logo.png" width="117px" height="104px" />
       </div>
@@ -27,63 +26,46 @@
     </div>
   </div>
 </template>
-
 <script>
 import { API_URL } from '../api';
-
 export default {
   data() {
     return {
-      error: '',
-      tgUser: null,
+      error: ''
     };
   },
-
-  mounted() {
-    // Attempt to load Telegram WebApp user data
-    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-      this.tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-      window.Telegram.WebApp.ready(); // optional: marks app as ready
-    } else {
-      this.error = '❌ Пожалуйста, откройте это приложение из Telegram.';
-    }
-  },
-
   methods: {
     async loginWithTelegram() {
       this.error = '';
-
-      if (!this.tgUser) {
-        this.error = '❌ Пожалуйста, откройте это приложение из Telegram.';
+      const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+      if (!tgUser) {
+        this.error = 'Вход только через Telegram.';
         return;
       }
 
-      if (!this.tgUser.username) {
+      if (!tgUser.username) {
         this.error = 'Пожалуйста, установите свой Alias в настройках Telegram.';
         return;
       }
 
-      const alias = this.tgUser.username;
-
+      const alias = tgUser.username;
       try {
         const response = await fetch(`${API_URL}/auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ alias }),
+          body: JSON.stringify({ alias })
         });
-
         const result = await response.json();
-
         if (result.success) {
           localStorage.setItem('session_token', result.token);
           this.$router.push('/');
         } else {
-          this.error = result.reason || 'Ошибка входа.';
+          this.error = result.reason;
         }
       } catch (err) {
         this.error = 'Server error';
       }
-    },
-  },
+    }
+  }
 };
 </script>
