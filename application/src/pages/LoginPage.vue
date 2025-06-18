@@ -49,7 +49,18 @@ export default {
 
     const rawInitData = window.Telegram?.WebApp?.initData;
     const user = parseTelegramInitData(rawInitData);
+    const userObj = parseInitData(rawInitData);
+    if (!rawInitData) {    
+      this.error = "Telegram initData missing.";
+      return;
+    }
+    if (!userObj || !userObj.username) {
+      this.error = "Alias (username) not found.";
+      return;
+    }
     const alias = user?.username;
+
+    console.log("alias: " + username);
 
       try {
         const response = await fetch(`${API_URL}/auth`, {
