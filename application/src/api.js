@@ -1,1 +1,1 @@
-export const API_URL = 'https://your-api-domain.com/api';
+export const API_URL = 'http://mekanxsari.ru:3000/api';
