@@ -2,6 +2,7 @@
   <div class="auth-container">
     <div class="login-container">
       <div class="space"></div>
+
       <div class="logo">
         <img src="/public/images/logo.png" width="117px" height="104px" />
       </div>
@@ -12,24 +13,15 @@
 
       <div class="inline-space"></div>
 
-      <!-- Telegram environment check message -->
-      <p v-if="!isTelegram" class="text" style="color: red;">
-        ❌ Пожалуйста, откройте это приложение из Telegram.
-      </p>
-      <p v-else class="text" style="color: green;">
-        ✅ Telegram WebApp обнаружен
-      </p>
-
       <form class="form" @submit.prevent="loginWithTelegram">
         <input
           type="submit"
           class="button"
           value="Войти через Telegram"
-          :disabled="!isTelegram"
         />
       </form>
 
-      <p v-if="error" class="text" style="color: red;">
+      <p v-if="error" class="text">
         {{ error }}
       </p>
     </div>
@@ -43,49 +35,55 @@ export default {
   data() {
     return {
       error: '',
-      isTelegram: false
+      tgUser: null,
     };
   },
+
   mounted() {
-    if (window.Telegram?.WebApp) {
-      this.isTelegram = true;
-      window.Telegram.WebApp.ready();
+    // Attempt to load Telegram WebApp user data
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      this.tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+      window.Telegram.WebApp.ready(); // optional: marks app as ready
+    } else {
+      this.error = '❌ Пожалуйста, откройте это приложение из Telegram.';
     }
   },
+
   methods: {
     async loginWithTelegram() {
       this.error = '';
 
-      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-
-      if (!tgUser) {
-        this.error = 'Вход только через Telegram.';
+      if (!this.tgUser) {
+        this.error = '❌ Пожалуйста, откройте это приложение из Telegram.';
         return;
       }
 
-      if (!tgUser.username) {
+      if (!this.tgUser.username) {
         this.error = 'Пожалуйста, установите свой Alias в настройках Telegram.';
         return;
       }
 
-      const alias = tgUser.username;
+      const alias = this.tgUser.username;
+
       try {
         const response = await fetch(`${API_URL}/auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ alias })
+          body: JSON.stringify({ alias }),
         });
+
         const result = await response.json();
+
         if (result.success) {
           localStorage.setItem('session_token', result.token);
           this.$router.push('/');
         } else {
-          this.error = result.reason || 'Ошибка авторизации';
+          this.error = result.reason || 'Ошибка входа.';
         }
       } catch (err) {
-        this.error = 'Ошибка сервера';
+        this.error = 'Server error';
       }
-    }
-  }
+    },
+  },
 };
 </script>
