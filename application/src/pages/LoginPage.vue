@@ -36,13 +36,7 @@ export default {
   },
   methods: {
     async loginWithTelegram() {
-      const tg = window.Telegram.WebAppUser;
-      const tgUser = tg.initDataUnsafe?.user;
-
-      if (tgUser) {
-        this.error = JSON.stringify(userObject);
-        return;
-      }
+      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
 
       if (!tgUser.username) {
         this.error = 'error';
