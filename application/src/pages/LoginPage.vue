@@ -52,7 +52,7 @@ export default {
         return;
       }
 
-      const tgUser = tg.initDataUnsafe.user;
+      const tgUser = tg.initDataUnsafe.username;
       
       if (!tgUser) {
         this.error = "tg user is incorrect";
