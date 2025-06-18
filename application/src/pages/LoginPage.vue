@@ -39,17 +39,18 @@ export default {
       this.error = '';
 
       const tg = window.Telegram.WebApp;
+      
+      const data = tg.initDataUnsafe;
 
-      if (!tg) {
-        this.error = "tg doesn't work";
+      if (!data){
+        this.error = "data is incorrect";
         return;
       }
-      
+
       const tgUser = tg.initDataUnsafe.user;
       
       if (!tgUser) {
-        this.error = tg.initData;
-        console.log(tg.initData);
+
         return;
       }
 
