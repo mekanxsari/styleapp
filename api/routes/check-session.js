@@ -20,3 +20,5 @@ router.post("/", async (req, res) => {
 
   res.json({ valid: true, user: result.rows[0] });
 });
+
+module.exports = router;
