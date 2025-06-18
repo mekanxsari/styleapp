@@ -41,11 +41,12 @@ export default {
       const tg = window.Telegram.WebApp;
       tg.expand();
       
+      
 
       const tgUser = tg.initDataUnsafe.user;
-      //
+      
       if (!tgUser) {
-        this.error = tgUser;
+        this.error = "some error";
         return;
       }
 
