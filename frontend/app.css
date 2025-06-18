@@ -67,7 +67,7 @@ li {
     margin-top: 20px;
 }
 
-.input {
+.auth-container > .login-container > .form > .input {
     outline: none;
     width: 300px;
     height: 58px;
@@ -88,16 +88,16 @@ li {
     color: #928477;
 }
 
-.input::placeholder {
+.auth-container > .login-container > .form > .input::placeholder {
     font-weight: 200;
     color: #C4BFC3;
 }
 
-.input:focus {
+.auth-container > .login-container > .form > .input:focus {
     border: 1px solid #948F93;
 }
 
-.button {
+.auth-container > .login-container > .form > .button {
     border: none;
     width: 305px;
     height: 58px;
@@ -115,7 +115,7 @@ li {
     color: white;
 }
 
-.register {
+.auth-container > .login-container > .register {
     border: none;
     width: 177px;
     height: 33px;
@@ -133,7 +133,7 @@ li {
     justify-content: center;
 }
 
-.register > a {
+.auth-container > .login-container > .register > a {
     color: #948F93;
     width: 100%;
     height: 100%;
@@ -234,7 +234,7 @@ li {
     font-weight: 300;
 }
 
-.main-container > .capsulas-container > .capsulas-list {
+.main-container > .capsules-container > .capsules-list {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -243,27 +243,27 @@ li {
     padding: 0;
 }
 
-.main-container > .capsulas-container > .capsulas-list > li {
+.main-container > .capsules-container > .capsules-list > li {
     display: inline-flex;
     width: 357px;
     height: 179px;
     flex-direction: column;
 }
 
-.main-container > .capsulas-container > .capsulas-list > li:first-child {
+.main-container > .capsules-container > .capsules-list > li:first-child {
     margin-bottom: 35px;
 }
 
-.main-container > .capsulas-container > .capsulas-list > li:not(:first-child) {
+.main-container > .capsules-container > .capsules-list > li:not(:first-child) {
     margin: 35px 0px;
 }
 
-.main-container > .capsulas-container > .capsulas-list > li > a {
+.main-container > .capsules-container > .capsules-list > li > a {
     color: #281E15;
     position: relative;
 }
 
-.main-container > .capsulas-container > .capsulas-list > li > a > .image {
+.main-container > .capsules-container > .capsules-list > li > a > .image {
     width: 357px;
     height: 179px;
     border-radius: 15px;
@@ -811,7 +811,7 @@ li {
 }
 
 .outfits-container,
-.capsulas-container,
+.capsules-container,
 .item-container {
     transition: opacity 0.4s, visibility 0.4s;
     opacity: 1;

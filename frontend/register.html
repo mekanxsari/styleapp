@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+       <title>
+            StyleApp | Register page
+        </title>
+        <link rel="stylesheet" href="app.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="auth-container">
+            <div class="login-container">
+                <div class="logo">
+                    <img src="images/logo.png" width="117px" height="104px">
+                </div>
+                <form class="form">
+                     <input type="text" id="name" name="name" class="input" placeholder="Ваше имя">
+                    <input type="text" id="email" name="email" class="input" placeholder="Электронная почта" required>
+                    <input type="button" id="login-continue" class="button" value="Продолжить">
+
+                    <input type="password" id="password" class="input" placeholder="Пароль">
+                    <input type="password" id="password-second" class="input" placeholder="Подтвердите пароль">
+                    <input type="submit" id="login-submit" class="button" value="Зарегистрироваться">
+                </form>
+            </div>
+        </div>
+        <script src="app.js"></script>
+    </body>
+</html>
