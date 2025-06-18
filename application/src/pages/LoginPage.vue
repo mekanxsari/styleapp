@@ -36,19 +36,21 @@ export default {
   },
   methods: {
     async loginWithTelegram() {
-      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-
-      if (!tgUser.username) {
-        this.error = 'error';
-        return;
+      function parseInitData(initData) {
+        const params = new URLSearchParams(initData);
+        const userStr = params.get('user');
+        if (!userStr) return null;
+        try {
+          return JSON.parse(userStr);
+        } catch {
+          return null;
+        }
       }
 
-      if (!tgUser.username) {
-        this.error = 'Пожалуйста, установите свой Alias в настройках Telegram.';
-        return;
-      }
+      const rawInitData = window.Telegram?.WebApp?.initData;
+      const userObj = parseInitData(rawInitData);
+      const alias = userObj?.username;
 
-      const alias = tgUser.username;
       try {
         const response = await fetch(`${API_URL}/auth`, {
           method: 'POST',
