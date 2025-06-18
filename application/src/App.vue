@@ -41,7 +41,7 @@ useHead({
   script: [
     {
       src: 'https://telegram.org/js/telegram-web-app.js',
-      defer: false,
+      defer: true,
     },
   ],
 })
