@@ -23,9 +23,6 @@
       <p v-if="error" class="text">
         {{ error }}
       </p>
-      <div v-if="tgUser">
-  <pre>{{ tgUser }}</pre>
-</div>
     </div>
   </div>
 </template>
@@ -41,10 +38,7 @@ export default {
     async loginWithTelegram() {
       this.error = '';
       const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-      if (!tgUser) {
-        this.error = 'Вход только через Telegram.';
-        return;
-      }
+
 
       if (!tgUser.username) {
         this.error = 'Пожалуйста, установите свой Alias в настройках Telegram.';
