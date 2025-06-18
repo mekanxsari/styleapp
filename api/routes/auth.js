@@ -14,13 +14,13 @@ router.post("/", async (req, res) => {
 
   if (user) {
     await pool.query(
-      "UPDATE users SET session_token = $1, session_expired = $2 WHERE id = $3",
+      "UPDATE users SET session_token = $1, session_expires_at = $2 WHERE id = $3",
       [token, expiresAt, user.id]
     );
     return res.json({ success: true, token });
   } else {
     const insertResult = await pool.query(
-      "INSERT INTO users (alias, session_token, session_expired) VALUES ($1, $2, $3) RETURNING id",
+      "INSERT INTO users (alias, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id",
       [alias, token, expiresAt]
     );
     return res.json({ success: true, token });
