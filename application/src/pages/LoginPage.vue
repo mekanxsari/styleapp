@@ -48,13 +48,18 @@ export default {
       }
 
       const rawInitData = window.Telegram?.WebApp?.initData;
-      const userObj = parseInitData(rawInitData);
-      const alias = userObj?.username;
-
-      if (alias) {
-        this.error = alias;
+      if (!rawInitData) {
+        this.error = "Telegram initData missing.";
         return;
       }
+
+      const userObj = parseInitData(rawInitData);
+      if (!userObj || !userObj.username) {
+        this.error = "Alias (username) not found. Please set alias in Telegram.";
+        return;
+      }
+
+      const alias = userObj.username;
 
       try {
         const response = await fetch(`${API_URL}/auth`, {
@@ -62,17 +67,21 @@ export default {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ alias })
         });
+
         const result = await response.json();
+
         if (result.success) {
           localStorage.setItem('session_token', result.token);
           this.$router.push('/');
         } else {
-          this.error = result.reason;
+          this.error = result.reason || 'Authentication failed';
         }
       } catch (err) {
         this.error = 'Server error';
+        console.error('Login failed:', err);
       }
     }
   }
 };
+
 </script>
