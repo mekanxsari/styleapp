@@ -37,7 +37,12 @@ export default {
   methods: {
     async loginWithTelegram() {
       this.error = '';
-      const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      
+      const tgUser = tg.initDataUnsafe.user;
+      
       if (!tgUser) {
         this.error = 'Вход только через Telegram.';
         return;
