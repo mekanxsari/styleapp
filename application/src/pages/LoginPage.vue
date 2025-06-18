@@ -1,6 +1,7 @@
 <template>
   <div class="auth-container">
     <div class="login-container">
+      <div class="space"></div>
       <div class="logo">
         <img src="/public/images/logo.png" width="117px" height="104px" />
       </div>
@@ -11,111 +12,60 @@
 
       <div class="inline-space"></div>
 
-      <form class="form" @submit.prevent="handleTelegramLogin">
+      <form class="form" @submit.prevent="loginWithTelegram">
         <input
           type="submit"
           class="button"
           value="Войти через Telegram"
-          v-if="!showPasscode"
         />
-
-        <div v-if="showPasscode" style="text-align: center">
-          <input
-            type="password"
-            id="password"
-            v-model="passcode"
-            class="input"
-            placeholder="Пароль"
-          />
-          <input
-            type="submit"
-            class="button"
-            value="Подтвердить пароль"
-          />
-        </div>
       </form>
 
-      <p v-if="errorMessage" style="margin-top: 10px">
-        {{ errorMessage }}
+      <p v-if="error" class="text">
+        {{ error }}
       </p>
     </div>
   </div>
 </template>
-
 <script>
+import { API_URL } from '../api';
 export default {
   data() {
     return {
-      passcode: "",
-      showPasscode: false,
-      user: null,
-      errorMessage: "",
+      error: ''
     };
   },
   methods: {
-    async handleTelegramLogin() {
-      this.errorMessage = "";
-
-      const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-
+    async loginWithTelegram() {
+      this.error = '';
+      const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
       if (!tgUser) {
-        this.errorMessage = "Пожалуйста, откройте приложение через Telegram.";
+        this.error = 'Вход только через Telegram.';
         return;
       }
 
-      this.user = tgUser;
-
-      const username = tgUser.username || tgUser.id;
-
-      if (this.showPasscode) {
-        const res = await fetch("https://cc7c-185-172-129-155.ngrok-free.app/api/login-special", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username,
-            passcode: this.passcode,
-          }),
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          window.location.href = "/";
-        } else {
-          this.errorMessage = "Неверный пароль.";
-        }
+      if (!tgUser.username) {
+        this.error = 'Пожалуйста, установите свой Alias в настройках Telegram.';
         return;
       }
 
-      const res = await fetch("https://cc7c-185-172-129-155.ngrok-free.app/api/check-user", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username }),
-      });
-
-      const data = await res.json();
-
-      if (!data.exists) {
-        this.errorMessage = "Пользователь не найден.";
-      } else if (data.special) {
-        this.showPasscode = true;
-      } else {
-        const loginRes = await fetch("https://cc7c-185-172-129-155.ngrok-free.app/api/login", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username }),
+      const alias = tgUser.username;
+      try {
+        const response = await fetch(`${API_URL}/auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alias })
         });
-
-        const loginData = await loginRes.json();
-        if (loginData.success) {
-          window.location.href = "/app";
+        const result = await response.json();
+        if (result.success) {
+          localStorage.setItem('session_token', result.token);
+          this.$router.push('/');
         } else {
-          this.errorMessage = "Ошибка входа.";
+          this.error = result.reason;
         }
+      } catch (err) {
+        this.error = 'Server error';
       }
-    },
-  },
+    }
+  }
 };
 </script>
