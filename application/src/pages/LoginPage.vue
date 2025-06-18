@@ -36,30 +36,20 @@ export default {
   },
   methods: {
     async loginWithTelegram() {
-      function parseInitData(initData) {
+      function parseTelegramInitData(initData) {
         const params = new URLSearchParams(initData);
-        const userStr = params.get('user');
-        if (!userStr) return null;
+        const userJSON = params.get("user");
+        if (!userJSON) return null;
         try {
-          return JSON.parse(userStr);
+          return JSON.parse(userJSON);
         } catch {
           return null;
         }
       }
 
-      const rawInitData = window.Telegram?.WebApp?.initData;
-      if (!rawInitData) {
-        this.error = "Telegram initData missing.";
-        return;
-      }
-
-      const userObj = parseInitData(rawInitData);
-      if (!userObj || !userObj.username) {
-        this.error = "Alias (username) not found. Please set alias in Telegram.";
-        return;
-      }
-
-      const alias = userObj.username;
+    const rawInitData = window.Telegram?.WebApp?.initData;
+    const user = parseTelegramInitData(rawInitData);
+    const alias = user?.username;
 
       try {
         const response = await fetch(`${API_URL}/auth`, {
