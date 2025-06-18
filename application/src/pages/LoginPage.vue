@@ -43,7 +43,7 @@ export default {
       
 
       const tgUser = tg.initDataUnsafe.user;
-      
+      //
       if (!tgUser) {
         this.error = tgUser;
         return;
