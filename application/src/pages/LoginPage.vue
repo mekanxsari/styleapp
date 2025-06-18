@@ -40,6 +40,8 @@ export default {
 
       const tg = window.Telegram.WebApp;
       
+      console.assert(tg, "tg does't exist");
+
       const tgUser = tg.initDataUnsafe.user;
       
       if (!tgUser) {
