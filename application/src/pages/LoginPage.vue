@@ -35,54 +35,35 @@ export default {
     };
   },
   methods: {
-    async loginWithTelegram() {
-      function parseTelegramInitData(initData) {
-        const params = new URLSearchParams(initData);
-        const userJSON = params.get("user");
-        if (!userJSON) return null;
-        try {
-          return JSON.parse(userJSON);
-        } catch {
-          return null;
-        }
-      }
-
+  async loginWithTelegram() {
     const rawInitData = window.Telegram?.WebApp?.initData;
-    const user = parseTelegramInitData(rawInitData);
-    const userObj = parseInitData(rawInitData);
-    if (!rawInitData) {    
+
+    if (!rawInitData) {
       this.error = "Telegram initData missing.";
       return;
     }
-    if (!userObj || !userObj.username) {
-      this.error = "Alias (username) not found.";
-      return;
-    }
-    const alias = user?.username;
 
-    console.log("alias: " + username);
+    try {
+      const response = await fetch(`${API_URL}/auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ initData: rawInitData })
+      });
 
-      try {
-        const response = await fetch(`${API_URL}/auth`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ alias })
-        });
+      const result = await response.json();
 
-        const result = await response.json();
-
-        if (result.success) {
-          localStorage.setItem('session_token', result.token);
-          this.$router.push('/');
-        } else {
-          this.error = result.reason || 'Authentication failed';
-        }
-      } catch (err) {
-        this.error = 'Server error';
-        console.error('Login failed:', err);
+      if (result.success) {
+        localStorage.setItem('session_token', result.token);
+        this.$router.push('/');
+      } else {
+        this.error = result.reason || 'Authentication failed';
       }
+    } catch (err) {
+      this.error = 'Server error';
+      console.error('Login failed:', err);
     }
   }
+}
 };
 
 </script>
