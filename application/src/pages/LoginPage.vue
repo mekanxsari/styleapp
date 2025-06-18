@@ -39,9 +39,7 @@ export default {
       this.error = '';
 
       const tg = window.Telegram.WebApp;
-      tg.expand();
       
-
       const tgUser = tg.initDataUnsafe.user;
       
       if (!tgUser) {
