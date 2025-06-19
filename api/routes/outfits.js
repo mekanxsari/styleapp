@@ -3,8 +3,33 @@ const router = express.Router();
 const pool = require('../db');
 
 router.get("/", async (req, res) => {
+  const userId = req.headers['x-user-id'];
+
+  if (!userId) {
+    return res.status(400).json({ message: "Missing user ID" });
+  }
+
   try {
-    const result = await pool.query("SELECT id, image_url, title, description, season, label FROM outfits");
+    const result = await pool.query(
+      `SELECT 
+          o.id,
+          o.image_url,
+          o.title,
+          o.description,
+          o.season,
+          o.label,
+          CASE 
+            WHEN ul.id IS NOT NULL THEN true 
+            ELSE false 
+          END AS liked
+       FROM outfits o
+       LEFT JOIN users_liked ul 
+          ON ul.liked_type = 'outfits' 
+          AND ul.liked_id = o.id 
+          AND ul.user_id = $1
+       ORDER BY o.id`,
+      [userId]
+    );
 
     res.json(result.rows);
   } catch (error) {
