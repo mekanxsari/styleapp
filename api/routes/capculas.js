@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
     const result = await pool.query(
       `SELECT 
           c.id,
-          c.image_url AS image_id,
+          c.image_url,
           c.title,
           c.season_1,
           c.season_2,

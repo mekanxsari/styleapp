@@ -41,7 +41,7 @@ router.get("/:id", async (req, res) => {
     const clothesQuery = `
       SELECT 
         c.id,
-        c.image_url AS image_id,
+        c.image_url,
         c.title,
         c.category,
         c.store_name,
