@@ -3,10 +3,12 @@ const router = express.Router();
 
 const authRouter = require('./auth');
 const checkSessionRouter = require('./check-session');
-const capsulasRouter = require('./capsulas');
+const capculasRouter = require('./capculas');
+const outfitsRouter = require('./outfits');
 
 router.use('/auth', authRouter);
 router.use('/check-session', checkSessionRouter);
-route.use('/capsulas', capsulasRouter);
+router.use('/capculas', capculasRouter);
+router.use('/outfits', outfitsRouter);
 
 module.exports = router;

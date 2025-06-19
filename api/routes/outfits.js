@@ -4,7 +4,7 @@ const pool = require('../db');
 
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, image_url, title, description, season_1, season_2 FROM capculas");
+    const result = await pool.query("SELECT id, image_url, title, description, season, label FROM outfits");
 
     res.json(result.rows);
   } catch (error) {
