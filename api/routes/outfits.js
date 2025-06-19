@@ -1,7 +1,3 @@
-const express = require('express');
-const router = express.Router();
-const pool = require('../db');
-
 router.get("/", async (req, res) => {
   const userId = req.headers['x-user-id'];
   const season = req.query.season;
@@ -22,7 +18,7 @@ router.get("/", async (req, res) => {
 
   if (label) {
     conditions.push(`o.label = $${index++}`);
-    values.push(type);
+    values.push(label);
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -56,5 +52,3 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-module.exports = router;
