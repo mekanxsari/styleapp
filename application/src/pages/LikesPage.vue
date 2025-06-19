@@ -124,7 +124,7 @@ function updateTabTitleAndQuantity() {
 
 function toggleItemLike(item) {
   item.liked = !item.liked
-  updateLike(item.id, 'items', item.liked)
+  updateLike(item.id, 'clothes', item.liked)
 }
 function toggleOutfitLike(outfit) {
   outfit.liked = !outfit.liked
