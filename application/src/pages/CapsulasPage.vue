@@ -31,47 +31,75 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { API_URL, SITE_URL } from '../api';
 
 const capsulas = ref([])
 
-onMounted(() => {
-  capsulas.value = [
-    {
-      id: 1,
-      image: '/images/capsula1.png',
-      title: 'Капсула первая',
-      count: 6,
-      season: 'Весна/Зима',
-      liked: false
-    },
-    {
-      id: 2,
-      image: '/images/capsula1.png',
-      title: 'Капсула вторая',
-      count: 4,
-      season: 'Лето',
-      liked: false
-    },
-    {
-      id: 3,
-      image: '/images/capsula1.png',
-      title: 'Капсула вторая',
-      count: 4,
-      season: 'Лето',
-      liked: false
-    },
-    {
-      id: 4,
-      image: '/images/capsula1.png',
-      title: 'Капсула вторая',
-      count: 4,
-      season: 'Лето',
-      liked: false
-    }
-  ]
+onMounted(async () => {
+  try {
+    const res = await fetch(`${API_URL}/capsulas`, {
+      headers: {
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      }
+    })
+
+    const data = await res.json()
+
+    capsulas.value = data.map(c => ({
+      id: c.id,
+      image: `${SITE_URL}/app-images/${c.image_url}`,
+      title: c.title,
+      count: c.quantity,
+      season: c.season_1 + (c.season_2 ? '/' + c.season_2 : ''),
+      liked: c.liked
+    }))
+  } catch (error) {
+    console.error(error)
+  }
 })
 
-function toggleLike(capsula) {
-  capsula.liked = !capsula.liked
+async function toggleLike(capsula) {
+  const userId = localStorage.getItem('user_id') || '1';
+  const type = 'capsulas'; // double-check this matches your DB constraint (e.g. 'capculas')
+
+  console.log(`[toggleLike] Toggling like for ID=${capsula.id}, current liked=${capsula.liked}, user=${userId}`);
+
+  // Optimistic UI update
+  capsula.liked = !capsula.liked;
+
+  const method = capsula.liked ? 'POST' : 'DELETE';
+  const endpoint = `${API_URL}/like/${capsula.id}`;
+  const payload = { type };
+
+  console.log(`[toggleLike] Sending ${method} to ${endpoint}`);
+  console.log(`[toggleLike] Headers:`, {
+    'Content-Type': 'application/json',
+    'x-user-id': userId
+  });
+  console.log(`[toggleLike] Body:`, payload);
+
+  try {
+    const res = await fetch(endpoint, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+    console.log(`[toggleLike] Response status: ${res.status}`);
+    console.log(`[toggleLike] Response body:`, result);
+
+    if (!res.ok) {
+      throw new Error(result.message || 'API returned error');
+    }
+  } catch (err) {
+    console.error('[toggleLike] Failed to update like:', err);
+    // Revert UI
+    capsula.liked = !capsula.liked;
+  }
 }
+
 </script>
