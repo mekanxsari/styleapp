@@ -1,3 +1,7 @@
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
 router.get("/", async (req, res) => {
   const userId = req.headers['x-user-id'];
   const season = req.query.season;
