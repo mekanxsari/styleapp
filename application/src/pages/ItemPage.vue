@@ -1,18 +1,19 @@
 <template>
-  <div class="main-container">
+  <div class="main-container" v-if="item">
     <div class="outfit-container">
       <div class="title-container">
         <ul class="left">
           <li class="title">{{ item.title }}</li>
           <li class="like">
             <img
-                  :src="item.liked ? '/images/heart-active.png' : '/images/heart.png'"
-                  class="like-btn-capsula"
-                  @click.prevent.stop="toggleItemLike(item)"
-                />
+              :src="item.liked ? '/images/heart-active.png' : '/images/heart.png'"
+              class="like-btn-capsula"
+              @click.prevent.stop="toggleItemLike(item)"
+            />
           </li>
         </ul>
       </div>
+
       <div class="inline-space"></div>
 
       <div class="information">
@@ -23,6 +24,7 @@
         <span class="store">Доступно:&nbsp;<b>{{ item.store }}</b></span>
         <a :href="item.storeLink" class="store-btn">В магазин</a>
       </div>
+
       <img :src="item.image" class="img" />
     </div>
 
@@ -35,10 +37,10 @@
       </ul>
       <ul class="right">
         <li :class="{ active: currentTab === 'outfits' }">
-          <a href="#" @click.prevent="switchTab('outfits')" id="outfits">Образы</a>
+          <a href="#" @click.prevent="switchTab('outfits')">Образы</a>
         </li>
         <li :class="{ active: currentTab === 'capsulas' }">
-          <a href="#" @click.prevent="switchTab('capsulas')" id="capsulas">Капсулы</a>
+          <a href="#" @click.prevent="switchTab('capsulas')">Капсулы</a>
         </li>
       </ul>
     </div>
@@ -46,7 +48,7 @@
     <div v-show="currentTab === 'outfits'" class="outfits-container">
       <ul class="outfits-list">
         <li v-for="outfit in outfits" :key="outfit.id">
-          <a :href="`/outfit/${outfit.id}`">
+          <router-link :to="`/outfit/${outfit.id}`">
             <img :src="outfit.image" class="image" />
             <div class="attributes">
               <div class="title">{{ outfit.title }}</div>
@@ -59,16 +61,17 @@
                 />
               </div>
             </div>
-          </a>
+          </router-link>
         </li>
       </ul>
     </div>
 
     <div class="inline-space"></div>
+
     <div v-show="currentTab === 'capsulas'" class="capsulas-container">
       <ul class="capsulas-list">
         <li v-for="capsula in capsulas" :key="capsula.id">
-          <a :href="`/capsula/${capsula.id}`">
+          <router-link :to="`/capsula/${capsula.id}`">
             <img :src="capsula.image" class="image" />
             <div class="attributes">
               <div class="prod-title">{{ capsula.title }}</div>
@@ -84,7 +87,7 @@
                 </li>
               </ul>
             </div>
-          </a>
+          </router-link>
         </li>
       </ul>
     </div>
@@ -94,31 +97,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { API_URL, SITE_URL } from '../api'
 
+const route = useRoute()
+const item = ref(null)
+const outfits = ref([])
+const capsulas = ref([])
 const currentTab = ref('outfits')
 const currentTabTitle = ref('Образы')
-const currentTabQuantity = ref('8')
-
-const item = ref({
-  title: 'Джемпер бежевый',
-  category: 'Верхняя одежда',
-  description: 'Channeling the glamour and sophistication of bygone eras into a modern fashion narrative.',
-  store: 'Lamoda',
-  storeLink: 'https://www.lamoda.ru/',
-  image: '/images/cloth1.png'
-})
-
-const outfits = ref([
-  { id: 1, title: 'Образ 1', image: '/images/outfit1.png', season: 'Весна', style: 'Кежуал', liked: false },
-  { id: 2, title: 'Образ 2', image: '/images/outfit1.png', season: 'Весна', style: 'Кежуал', liked: false },
-])
-
-const capsulas = ref([
-  { id: 1, title: 'Капсула первая', image: '/images/capsula1.png', count: 6, season: 'Весна/Зима', liked: false },
-  { id: 2, title: 'Капсула вторая', image: '/images/capsula1.png', count: 6, season: 'Весна/Зима', liked: false },
-  { id: 3, title: 'Капсула третья', image: '/images/capsula1.png', count: 6, season: 'Весна/Зима', liked: false }
-])
+const currentTabQuantity = ref('0')
 
 function switchTab(tab) {
   currentTab.value = tab
@@ -133,13 +122,75 @@ function switchTab(tab) {
 
 function toggleOutfitLike(outfit) {
   outfit.liked = !outfit.liked
+  updateLike(outfit.id, 'outfits', outfit.liked)
 }
 
 function toggleCapsulaLike(capsula) {
   capsula.liked = !capsula.liked
+  updateLike(capsula.id, 'capsulas', capsula.liked)
 }
 
-function toggleItemLike(item) {
-  item.liked = !item.liked
+function toggleItemLike(i) {
+  i.liked = !i.liked
+  updateLike(i.id, 'items', i.liked)
 }
+
+async function updateLike(id, type, liked) {
+  try {
+    await fetch(`${API_URL}/like/${id}`, {
+      method: liked ? 'POST' : 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      },
+      body: JSON.stringify({ type })
+    })
+  } catch (err) {
+    console.error('Failed to update like:', err)
+  }
+}
+
+onMounted(async () => {
+  try {
+    const id = route.params.id
+    const res = await fetch(`${API_URL}/cloth/${id}`, {
+      headers: {
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      }
+    })
+    const data = await res.json()
+    item.value = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      store: data.store_name,
+      storeLink: data.store_url,
+      image: `${SITE_URL}/app-images/${data.image_url}`,
+      liked: data.liked
+    }
+
+    outfits.value = data.outfits.map(o => ({
+      id: o.id,
+      title: o.title,
+      image: `${SITE_URL}/app-images/${o.image_url}`,
+      season: o.season,
+      style: o.label,
+      liked: o.liked
+    }))
+
+    capsulas.value = data.capsulas.map(c => ({
+      id: c.id,
+      title: c.title,
+      image: `${SITE_URL}/app-images/${c.image_id}`,
+      season: c.season_1 + (c.season_2 ? '/' + c.season_2 : ''),
+      count: c.quantity,
+      liked: c.liked
+    }))
+
+    switchTab('outfits')
+  } catch (err) {
+    console.error('Failed to load item:', err)
+  }
+})
 </script>

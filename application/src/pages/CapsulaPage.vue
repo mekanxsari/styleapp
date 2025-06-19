@@ -45,7 +45,7 @@
           </router-link>
         </li>
       </ul>
-      <div v-if="loadingOutfits" class="loading" style="text-align: center;">Загрузка...</div>
+      <div v-if="loadingOutfits" class="loading">Загрузка...</div>
     </div>
 
     <div class="space"></div>

@@ -583,6 +583,8 @@ li {
 
 .outfit-container > .information > .labels {
     display: flex;
+    flex-wrap: wrap;
+    width: 150px;
 }
 
 .outfit-container > .information > .labels > li {
@@ -590,10 +592,10 @@ li {
     background-color: #EBEBEB;
     padding: 4px 10px;
     border-radius: 70px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 200;
     color: #948F93;
-    margin: 0px 3px;
+    margin: 3px 3px;
 }
 
 .outfit-container > .information > .description {
@@ -715,7 +717,13 @@ li {
 }
 
 .item-list > li > a > .attributes > .store-inf > .store > .store-name {
-    word-break: break-word;
+    display: inline-flex;
+    align-items: center;
+    font-size: 9px;
+    white-space: nowrap;
+    width: 45px;
+    overflow: hidden;             
+    text-overflow: ellipsis; 
 }
 
 .store-inf > .store-btn {
@@ -908,4 +916,10 @@ li {
 .likes-inline-item > .right > .active > a {
     background-color: #928477;
     color: white;
+}
+
+.loading {
+    text-align: center;
+    font-family: "Inter", sans-serif;
+    font-weight: 300;
 }

@@ -8,7 +8,6 @@
       </div>
 
       <div class="dropdown-container">
-        <!-- Type dropdown -->
         <div
           class="custom-dropdown"
           @click="toggleDropdown(0)"
@@ -18,7 +17,7 @@
           <span class="arrow"><img src="/images/arrow.svg" /></span>
           <div class="dropdown-options">
             <div
-              v-for="type in ['All types', ...types]"
+              v-for="type in ['Все типы', ...types]"
               :key="type"
               @click.stop="selectOption(0, type)"
             >
@@ -27,7 +26,6 @@
           </div>
         </div>
 
-        <!-- Season dropdown -->
         <div
           class="custom-dropdown"
           @click="toggleDropdown(1)"
@@ -37,7 +35,7 @@
           <span class="arrow"><img src="/images/arrow.svg" /></span>
           <div class="dropdown-options">
             <div
-              v-for="season in ['All seasons', ...seasons]"
+              v-for="season in ['Все сезоны', ...seasons]"
               :key="season"
               @click.stop="selectOption(1, season)"
             >
@@ -47,7 +45,6 @@
         </div>
       </div>
 
-      <!-- Outfit list -->
       <ul class="outfits-list">
         <li v-for="outfit in outfits" :key="outfit.id">
           <router-link :to="`/outfit/${outfit.id}`">
@@ -78,8 +75,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { API_URL, SITE_URL } from '../api'
 
 const openDropdown = ref(null)
-const selectedType = ref('All types')
-const selectedSeason = ref('All seasons')
+const selectedType = ref('Все типы')
+const selectedSeason = ref('Все сезоны')
 
 const types = ref([])
 const seasons = ref([])
@@ -106,8 +103,8 @@ function selectOption(index, value) {
 
 function buildQueryParams() {
   const params = new URLSearchParams()
-  if (selectedType.value !== 'All types') params.append('label', selectedType.value)
-  if (selectedSeason.value !== 'All seasons') params.append('season', selectedSeason.value)
+  if (selectedType.value !== 'Все типы') params.append('label', selectedType.value)
+  if (selectedSeason.value !== 'Все сезоны') params.append('season', selectedSeason.value)
   params.append('page', page.value)
   params.append('limit', pageSize)
   return params.toString()

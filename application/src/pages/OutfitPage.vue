@@ -8,7 +8,7 @@
             <img
               :src="outfit.liked ? '/images/heart-active.png' : '/images/heart.png'"
               class="like-btn-capsula"
-              @click.stop.prevent="toggleOutfitLike(outfit)"
+              @click.stop.prevent="toggleOutfitLike"
             />
           </li>
         </ul>
@@ -67,75 +67,75 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { API_URL, SITE_URL } from '../api'
 
 const route = useRoute()
 const outfit = ref(null)
 
-const allOutfits = [
-  {
-    id: 1,
-    title: 'Образ 1',
-    season: 'Весна',
-    style: 'Кежуал',
-    description:
-      'Channeling the glamour and sophistication of bygone eras into a modern fashion narrative. Channeling the glamour and sophistication of bygone eras into a modern fashion narrative.',
-    image: '/images/outfit1.png',
-    liked: false,
-    items: [
-      {
-        id: 1,
-        name: 'Джемпер бежевый',
-        image: '/images/cloth1.png',
-        liked: false,
-        category: 'Верхняя одежда',
-        store: 'Lamoda',
-        link: 'https://www.lamoda.ru/'
-      },
-      {
-        id: 2,
-        name: 'Брюки черные',
-        image: '/images/cloth1.png',
-        liked: false,
-        category: 'Низ',
-        store: 'Lamoda',
-        link: 'https://www.lamoda.ru/'
-      },
-      {
-        id: 3,
-        name: 'Кроссовки белые',
-        image: '/images/cloth1.png',
-        liked: false,
-        category: 'Обувь',
-        store: 'Lamoda',
-        link: 'https://www.lamoda.ru/'
-      },
-      {
-        id: 4,
-        name: 'Шарф красный',
-        image: '/images/cloth1.png',
-        liked: false,
-        category: 'Аксессуары',
-        store: 'Lamoda',
-        link: 'https://www.lamoda.ru/'
-      }
-    ]
-  }
-]
-
 onMounted(() => {
-  const id = parseInt(route.params.id)
-  outfit.value = allOutfits.find(o => o.id === id)
+  loadOutfit()
 })
 
-function toggleOutfitLike(o) {
-  o.liked = !o.liked
+async function loadOutfit() {
+  const id = route.params.id
+  try {
+    const res = await fetch(`${API_URL}/outfit/${id}`, {
+      headers: {
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      }
+    })
+    const data = await res.json()
+
+    outfit.value = {
+      id: data.id,
+      title: data.title,
+      season: data.season,
+      style: data.label,
+      description: data.description,
+      image: `${SITE_URL}/app-images/${data.image_id}`,
+      liked: data.liked,
+      items: data.clothes.map(c => ({
+        id: c.id,
+        name: c.title,
+        image: `${SITE_URL}/app-images/${c.image_url}`,
+        liked: c.liked,
+        category: c.category,
+        store: c.store_name,
+        link: c.store_url
+      }))
+    }
+  } catch (err) {
+    console.error('Error loading outfit:', err)
+  }
 }
 
-function toggleItemLike(i) {
-  i.liked = !i.liked
+function toggleOutfitLike() {
+  if (!outfit.value) return
+  outfit.value.liked = !outfit.value.liked
+  updateLike(outfit.value.id, 'outfits', outfit.value.liked)
+}
+
+function toggleItemLike(item) {
+  item.liked = !item.liked
+  updateLike(item.id, 'clothes', item.liked)
 }
 
 function goToStore(url) {
   window.location.href = url
+}
+
+async function updateLike(id, type, liked) {
+  try {
+    await fetch(`${API_URL}/like/${id}`, {
+      method: liked ? 'POST' : 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      },
+      body: JSON.stringify({ type })
+    })
+  } catch (err) {
+    console.error('Failed to update like:', err)
+  }
 }
 </script>
