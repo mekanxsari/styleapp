@@ -11,6 +11,6 @@ router.use('/auth', authRouter);
 router.use('/check-session', checkSessionRouter);
 router.use('/capculas', capculasRouter);
 router.use('/outfits', outfitsRouter);
-router.use('./capcula', capculaRouter);
+router.use('/capcula', capculaRouter);
 
 module.exports = router;
