@@ -5,7 +5,6 @@ const crypto = require("crypto");
 const querystring = require("querystring");
 const pool = require('../db');
 
-//BOT API TOKEN from BotFather
 const BOT_TOKEN = '7720170640:AAGfd0fHPPM8z6AyoEZlDDfZpn0OuWaBkb4';
 
 function verifyTelegramInitData(initData) {
@@ -68,13 +67,14 @@ router.post("/", async (req, res) => {
       [token, expiresAt, user.id]
     );
   } else {
-    await pool.query(
-      "INSERT INTO users (alias, session_token, session_expires_at) VALUES ($1, $2, $3)",
+    const insertResult = await pool.query(
+      "INSERT INTO users (alias, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id",
       [alias, token, expiresAt]
     );
+    user = insertResult.rows[0];
   }
 
-  return res.json({ success: true, token });
+  return res.json({ success: true, token, id: user.id });
 });
 
 module.exports = router;

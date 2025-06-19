@@ -54,6 +54,7 @@ export default {
 
       if (result.success) {
         localStorage.setItem('session_token', result.token);
+        localStorage.setItem('user_id', result.id);
         this.$router.push('/');
       } else {
         this.error = result.reason || 'Authentication failed';
