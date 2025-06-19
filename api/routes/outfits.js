@@ -5,7 +5,7 @@ const pool = require('../db');
 router.get("/", async (req, res) => {
   const userId = req.headers['x-user-id'];
   const season = req.query.season;
-  const type = req.query.type;
+  const label = req.query.label;
 
   if (!userId) {
     return res.status(400).json({ message: "Missing user ID" });
