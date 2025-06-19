@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
     values.push(season);
   }
 
-  if (type) {
+  if (label) {
     conditions.push(`o.label = $${index++}`);
     values.push(type);
   }
