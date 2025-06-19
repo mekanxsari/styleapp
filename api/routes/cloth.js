@@ -24,9 +24,9 @@ router.get("/:id", async (req, res) => {
           SELECT COUNT(*) FROM outfits_superset os WHERE os.clothes_id = c.id
         )::INT AS outfits_quantity,
         (
-          SELECT COUNT(DISTINCT cs.capculas_id)
+          SELECT COUNT(DISTINCT cs.capsulas_id)
           FROM outfits_superset os
-          JOIN capculas_superset cs ON cs.outfit_id = os.outfit_id
+          JOIN capsulas_superset cs ON cs.outfit_id = os.outfit_id
           WHERE os.clothes_id = c.id
         )::INT AS capsulas_quantity,
         CASE WHEN ul.id IS NOT NULL THEN true ELSE false END AS liked
@@ -71,14 +71,14 @@ router.get("/:id", async (req, res) => {
         c.season_1,
         c.season_2,
         (
-          SELECT COUNT(*) FROM capculas_superset cs2 WHERE cs2.capculas_id = c.id
+          SELECT COUNT(*) FROM capsulas_superset cs2 WHERE cs2.capsulas_id = c.id
         )::INT AS quantity,
         CASE WHEN ul.id IS NOT NULL THEN true ELSE false END AS liked
-      FROM capculas c
-      INNER JOIN capculas_superset cs ON cs.capculas_id = c.id
+      FROM capsulas c
+      INNER JOIN capsulas_superset cs ON cs.capsulas_id = c.id
       INNER JOIN outfits_superset os ON os.outfit_id = cs.outfit_id
       LEFT JOIN users_liked ul
-        ON ul.liked_type = 'capculas'
+        ON ul.liked_type = 'capsulas'
         AND ul.liked_id = c.id
         AND ul.user_id = $2
       WHERE os.clothes_id = $1

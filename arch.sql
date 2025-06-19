@@ -31,7 +31,7 @@ CREATE TABLE outfits (
     label VARCHAR(50)
 );
 
-CREATE TABLE capculas (
+CREATE TABLE capsulas (
     id SERIAL PRIMARY KEY,
     image_url VARCHAR(100) NOT NULL,
     title VARCHAR(100) NOT NULL,
@@ -46,16 +46,16 @@ CREATE TABLE outfits_superset (
     PRIMARY KEY (outfit_id, clothes_id)
 );
 
-CREATE TABLE capculas_superset (
-    capculas_id INTEGER REFERENCES capculas(id) ON DELETE CASCADE,
+CREATE TABLE capsulas_superset (
+    capsulas_id INTEGER REFERENCES capsulas(id) ON DELETE CASCADE,
     outfit_id INTEGER REFERENCES outfits(id) ON DELETE CASCADE,
-    PRIMARY KEY (capculas_id, outfit_id)
+    PRIMARY KEY (capsulas_id, outfit_id)
 );
 
 CREATE TABLE users_liked (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    liked_type VARCHAR(20) NOT NULL CHECK (liked_type IN ('clothes', 'outfits', 'capculas')),
+    liked_type VARCHAR(20) NOT NULL CHECK (liked_type IN ('clothes', 'outfits', 'capsulas')),
     liked_id INTEGER NOT NULL
 );
 
@@ -129,7 +129,7 @@ INSERT INTO outfits (id, image_url, title, description, season, label) VALUES
 (19, '67.jpg', 'Образ №4', NULL, 'Зима', 'Кэжуал'),
 (20, '68.jpg', 'Образ №5', NULL, 'Зима', 'Повседневный');
 
-INSERT INTO capculas (id, image_url, title, description, season_1, season_2) VALUES
+INSERT INTO capsulas (id, image_url, title, description, season_1, season_2) VALUES
 (1, '51.jpg', 'Весна', 'Капсула отражает пробуждение природы. здесь есть всё, чтобы оставаться стильным в переменчивую весеннюю погоду – от демисезонных коажнок до лёгких топов, которые легко комбинируются между собой.', 'Весна', 'Лето'),
 (2, '57.jpg', 'Лето', 'Лёгкие, дышащие ткани и приятные цвета – эта капсула создана для жарких дней. В ней продумана каждая деталь, чтобы выглядеть свежо даже в самый зной, будь то прогулка по городу или отдых на море.', 'Лето', NULL),
 (3, '63.jpg', 'Осень', 'Тёплая, но не громоздкая, эта капсула идеальна для прохладной осени. в ней сочетаются уютные вещи, стильные теплые элементы и удобная обувь на любой случай – от дождливых будней до вечерних встреч.', 'Осень', NULL),
@@ -157,8 +157,21 @@ INSERT INTO outfits_superset (outfit_id, clothes_id) VALUES
 (19, 10), (19, 11), (19, 26), (19, 33), (19, 44), (19, 45),
 (20, 9), (20, 19), (20, 27), (20, 34), (20, 44), (20, 45);
 
-INSERT INTO capculas_superset (capculas_id, outfit_id) VALUES
+INSERT INTO capsulas_superset (capsulas_id, outfit_id) VALUES
 (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
 (2, 6), (2, 7), (2, 8), (2, 9), (2, 10),
 (3, 11), (3, 12), (3, 13), (3, 14), (3, 15),
 (4, 16), (4, 17), (4, 18), (4, 19), (4, 20);
+
+INSERT INTO users (alias, session_token, session_expires_at)
+VALUES ('mekan_user', 'abc123xyz', NOW() + INTERVAL '7 days')
+RETURNING id;
+
+INSERT INTO users_liked (user_id, liked_type, liked_id) VALUES
+(1, 'clothes', 1),
+(1, 'clothes', 2),
+(1, 'clothes', 3),
+(1, 'clothes', 4),
+(1, 'outfits', 1),
+(1, 'capsulas', 1),
+(1, 'capsulas', 2);

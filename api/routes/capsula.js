@@ -21,10 +21,10 @@ router.get("/:id", async (req, res) => {
         c.season_2,
         COUNT(cs.outfit_id) AS quantity,
         CASE WHEN ul.id IS NOT NULL THEN true ELSE false END AS liked
-      FROM capculas c
-      LEFT JOIN capculas_superset cs ON cs.capculas_id = c.id
+      FROM capsulas c
+      LEFT JOIN capsulas_superset cs ON cs.capsulas_id = c.id
       LEFT JOIN users_liked ul 
-        ON ul.liked_type = 'capculas' 
+        ON ul.liked_type = 'capsulas' 
         AND ul.liked_id = c.id 
         AND ul.user_id = $2
       WHERE c.id = $1
@@ -46,12 +46,12 @@ router.get("/:id", async (req, res) => {
         o.label,
         CASE WHEN ul.id IS NOT NULL THEN true ELSE false END AS liked
       FROM outfits o
-      INNER JOIN capculas_superset cs ON cs.outfit_id = o.id
+      INNER JOIN capsulas_superset cs ON cs.outfit_id = o.id
       LEFT JOIN users_liked ul
         ON ul.liked_type = 'outfits'
         AND ul.liked_id = o.id
         AND ul.user_id = $2
-      WHERE cs.capculas_id = $1
+      WHERE cs.capsulas_id = $1
       ORDER BY o.id
     `;
 

@@ -3,18 +3,18 @@ const router = express.Router();
 
 const authRouter = require('./auth');
 const checkSessionRouter = require('./check-session');
-const capculasRouter = require('./capculas');
+const capsulasRouter = require('./capsulas');
 const outfitsRouter = require('./outfits');
-const capculaRouter = require('./capcula');
+const capsulaRouter = require('./capsula');
 const outfitRouter = require('./outfit');
 const clothRouter = require('./cloth');
 const likesRouter = require('./likes');
 
 router.use('/auth', authRouter);
 router.use('/check-session', checkSessionRouter);
-router.use('/capculas', capculasRouter);
+router.use('/capsulas', capsulasRouter);
 router.use('/outfits', outfitsRouter);
-router.use('/capcula', capculaRouter);
+router.use('/capsula', capsulaRouter);
 router.use('/outfit', outfitRouter);
 router.use('/cloth', clothRouter);
 router.use('/likes', likesRouter);

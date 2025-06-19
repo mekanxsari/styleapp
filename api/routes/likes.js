@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
     const clothesQuery = `
       SELECT 
         c.id,
-        c.image_url AS image_id,
+        c.image_url,
         c.title,
         c.category,
         c.store_name,
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
     const outfitsQuery = `
       SELECT 
         o.id,
-        o.image_url AS image_id,
+        o.image_url,
         o.title,
         o.season,
         o.label,
@@ -47,34 +47,34 @@ router.get('/', async (req, res) => {
 
     const outfitsResult = await pool.query(outfitsQuery, [userId]);
 
-    const capculasQuery = `
+    const capsulasQuery = `
       SELECT 
         c.id,
-        c.image_url AS image_id,
+        c.image_url,
         c.title,
         c.season_1,
         c.season_2,
         (
-          SELECT COUNT(*) FROM capculas_superset cs WHERE cs.capculas_id = c.id
+          SELECT COUNT(*) FROM capsulas_superset cs WHERE cs.capsulas_id = c.id
         )::INT AS quantity,
         true AS liked
-      FROM capculas c
+      FROM capsulas c
       INNER JOIN users_liked ul 
-        ON ul.liked_type = 'capculas'
+        ON ul.liked_type = 'capsulas'
         AND ul.liked_id = c.id
       WHERE ul.user_id = $1
       ORDER BY c.id
     `;
 
-    const capculasResult = await pool.query(capculasQuery, [userId]);
+    const capsulasResult = await pool.query(capsulasQuery, [userId]);
 
     res.json({
       clothes_quantity: clothesResult.rowCount,
       outfits_quantity: outfitsResult.rowCount,
-      capsulas_quantity: capculasResult.rowCount,
+      capsulas_quantity: capsulasResult.rowCount,
       clothes: clothesResult.rows,
       outfits: outfitsResult.rows,
-      capsulas: capculasResult.rows
+      capsulas: capsulasResult.rows
     });
 
   } catch (error) {

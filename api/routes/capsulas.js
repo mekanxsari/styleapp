@@ -22,11 +22,11 @@ router.get("/", async (req, res) => {
             WHEN ul.id IS NOT NULL THEN true 
             ELSE false 
           END AS liked
-       FROM capculas c
-       LEFT JOIN capculas_superset cs 
-          ON cs.capculas_id = c.id
+       FROM capsulas c
+       LEFT JOIN capsulas_superset cs 
+          ON cs.capsulas_id = c.id
        LEFT JOIN users_liked ul 
-          ON ul.liked_type = 'capculas' 
+          ON ul.liked_type = 'capsulas' 
           AND ul.liked_id = c.id 
           AND ul.user_id = $1
        GROUP BY c.id, ul.id
