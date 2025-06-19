@@ -24,82 +24,88 @@
           </router-link>
         </li>
       </ul>
+      <div v-if="loading" class="loading" style="text-align: center;">Загрузка...</div>
     </div>
   </div>
   <div class="space"></div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { API_URL, SITE_URL } from '../api';
+import { ref, onMounted, onUnmounted } from 'vue'
+import { API_URL, SITE_URL } from '../api'
 
 const capsulas = ref([])
+const page = ref(1)
+const pageSize = 10
+const loading = ref(false)
+const hasMore = ref(true)
 
-onMounted(async () => {
+async function loadCapsulas() {
+  if (loading.value || !hasMore.value) return
+
+  loading.value = true
+
   try {
-    const res = await fetch(`${API_URL}/capsulas`, {
+    const res = await fetch(`${API_URL}/capsulas?page=${page.value}&limit=${pageSize}`, {
       headers: {
         'x-user-id': localStorage.getItem('user_id') || '1'
       }
     })
-
     const data = await res.json()
 
-    capsulas.value = data.map(c => ({
+    if (data.length < pageSize) hasMore.value = false
+
+    capsulas.value.push(...data.map(c => ({
       id: c.id,
       image: `${SITE_URL}/app-images/${c.image_url}`,
       title: c.title,
       count: c.quantity,
       season: c.season_1 + (c.season_2 ? '/' + c.season_2 : ''),
       liked: c.liked
-    }))
+    })))
+
+    page.value++
   } catch (error) {
-    console.error(error)
-  }
-})
-
-async function toggleLike(capsula) {
-  const userId = localStorage.getItem('user_id') || '1';
-  const type = 'capsulas'; // double-check this matches your DB constraint (e.g. 'capculas')
-
-  console.log(`[toggleLike] Toggling like for ID=${capsula.id}, current liked=${capsula.liked}, user=${userId}`);
-
-  // Optimistic UI update
-  capsula.liked = !capsula.liked;
-
-  const method = capsula.liked ? 'POST' : 'DELETE';
-  const endpoint = `${API_URL}/like/${capsula.id}`;
-  const payload = { type };
-
-  console.log(`[toggleLike] Sending ${method} to ${endpoint}`);
-  console.log(`[toggleLike] Headers:`, {
-    'Content-Type': 'application/json',
-    'x-user-id': userId
-  });
-  console.log(`[toggleLike] Body:`, payload);
-
-  try {
-    const res = await fetch(endpoint, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': userId
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const result = await res.json();
-    console.log(`[toggleLike] Response status: ${res.status}`);
-    console.log(`[toggleLike] Response body:`, result);
-
-    if (!res.ok) {
-      throw new Error(result.message || 'API returned error');
-    }
-  } catch (err) {
-    console.error('[toggleLike] Failed to update like:', err);
-    // Revert UI
-    capsula.liked = !capsula.liked;
+    console.error('Error loading capsulas:', error)
+  } finally {
+    loading.value = false
   }
 }
 
+function onScroll() {
+  const scrollTop = window.scrollY
+  const windowHeight = window.innerHeight
+  const docHeight = document.documentElement.scrollHeight
+
+  if (scrollTop + windowHeight >= docHeight - 100) {
+    loadCapsulas()
+  }
+}
+
+onMounted(() => {
+  loadCapsulas()
+  window.addEventListener('scroll', onScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
+
+async function toggleLike(capsula) {
+  capsula.liked = !capsula.liked
+
+  try {
+    await fetch(`${API_URL}/like/${capsula.id}`, {
+      method: capsula.liked ? 'POST' : 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      },
+      body: JSON.stringify({ type: 'capsulas' })
+    })
+  } catch (err) {
+    console.error('Failed to update like:', err)
+    capsula.liked = !capsula.liked
+  }
+}
 </script>

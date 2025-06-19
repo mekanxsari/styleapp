@@ -4,33 +4,52 @@ const pool = require('../db');
 
 router.get("/", async (req, res) => {
   const userId = req.headers['x-user-id'];
+  const season = req.query.season;
+  const type = req.query.type;
 
   if (!userId) {
     return res.status(400).json({ message: "Missing user ID" });
   }
 
-  try {
-    const result = await pool.query(
-      `SELECT 
-          o.id,
-          o.image_url,
-          o.title,
-          o.description,
-          o.season,
-          o.label,
-          CASE 
-            WHEN ul.id IS NOT NULL THEN true 
-            ELSE false 
-          END AS liked
-       FROM outfits o
-       LEFT JOIN users_liked ul 
-          ON ul.liked_type = 'outfits' 
-          AND ul.liked_id = o.id 
-          AND ul.user_id = $1
-       ORDER BY o.id`,
-      [userId]
-    );
+  const conditions = [];
+  const values = [userId];
+  let index = 2;
 
+  if (season) {
+    conditions.push(`o.season = $${index++}`);
+    values.push(season);
+  }
+
+  if (type) {
+    conditions.push(`o.label = $${index++}`);
+    values.push(type);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const query = `
+    SELECT 
+        o.id,
+        o.image_url,
+        o.title,
+        o.description,
+        o.season,
+        o.label,
+        CASE 
+          WHEN ul.id IS NOT NULL THEN true 
+          ELSE false 
+        END AS liked
+     FROM outfits o
+     LEFT JOIN users_liked ul 
+        ON ul.liked_type = 'outfits' 
+        AND ul.liked_id = o.id 
+        AND ul.user_id = $1
+     ${whereClause}
+     ORDER BY o.id
+  `;
+
+  try {
+    const result = await pool.query(query, values);
     res.json(result.rows);
   } catch (error) {
     console.error("Database query error:", error);
