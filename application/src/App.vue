@@ -1,8 +1,3 @@
-<template>
-  <router-view />
-  <AppFooter v-if="!hideFooter" />
-</template>
-
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { computed, onMounted, onUnmounted } from 'vue'
@@ -27,7 +22,7 @@ function setupBackButton(path) {
     tg.BackButton.show()
     tg.BackButton.onClick(() => {
       navStack.pop()
-      const previous = navStack.pop()
+      const previous = navStack[navStack.length - 1]
 
       if (previous && previous !== '/login') {
         router.push(previous)
@@ -41,7 +36,10 @@ function setupBackButton(path) {
 onMounted(() => {
   if (!tg || !tg.initDataUnsafe) return
 
-  navStack.push(route.path)
+  if (!navStack.length || navStack[navStack.length - 1] !== route.path) {
+    navStack.push(route.path)
+  }
+
   setupBackButton(route.path)
 
   router.afterEach((to, from) => {
@@ -70,15 +68,8 @@ useHead({
     },
   ],
   link: [
-    {
-      rel: 'preconnect',
-      href: 'https://fonts.googleapis.com',
-    },
-    {
-      rel: 'preconnect',
-      href: 'https://fonts.gstatic.com',
-      crossorigin: '',
-    },
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
     {
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;1,700&family=Prata&display=swap',
