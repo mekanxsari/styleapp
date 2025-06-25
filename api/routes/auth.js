@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     let user = result.rows[0]
 
     const token = uuidv4()
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
     if (user) {
       await pool.query(
