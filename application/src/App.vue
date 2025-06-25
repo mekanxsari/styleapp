@@ -27,11 +27,7 @@ function setupBackButton(path) {
   } else {
     tg.BackButton.show()
     tg.BackButton.onClick(() => {
-      if (window.history.length > 1) {
-        router.back()
-      } else {
-        router.push('/')
-      }
+      router.back()
     })
   }
 }
