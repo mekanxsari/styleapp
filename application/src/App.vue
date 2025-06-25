@@ -20,7 +20,7 @@ const navStack = []
 function setupBackButton(path) {
   if (!tg) return
 
-  if (path === '/login' || path === '/') {
+  if (path === '/login') {
     tg.BackButton.hide()
     tg.BackButton.onClick(null)
   } else {
