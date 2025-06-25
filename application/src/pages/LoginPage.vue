@@ -59,7 +59,7 @@ async function loginWithTelegram() {
   const alias = window.Telegram?.WebApp?.initDataUnsafe?.user?.username
 
   if (!alias) {
-    error.value = 'Telegram username not available.'
+    error.value = 'Установите свой alias Telegram в настройках.'
     return
   }
 
