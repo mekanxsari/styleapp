@@ -16,7 +16,8 @@
         <input
           type="submit"
           class="button"
-          value="Войти через Telegram"
+          :value="loading ? 'Загрузка...' : 'Войти через Telegram'"
+          :disabled="loading"
         />
       </form>
 
@@ -26,6 +27,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -33,14 +35,18 @@ import { API_URL } from '../api'
 
 const router = useRouter()
 const error = ref('')
+const loading = ref(false)
 
 async function loginWithTelegram() {
-  const alias = window.Telegram?.WebApp?.initDataUnsafe?.user?.username;
+  const alias = window.Telegram?.WebApp?.initDataUnsafe?.user?.username
 
   if (!alias) {
     error.value = 'Telegram username not available.'
     return
   }
+
+  loading.value = true
+  error.value = ''
 
   try {
     const response = await fetch(`${API_URL}/auth`, {
@@ -54,13 +60,15 @@ async function loginWithTelegram() {
     if (result.success) {
       localStorage.setItem('session_token', result.token)
       localStorage.setItem('user_id', result.id)
-      router.push('/')
+      await router.push('/')
     } else {
       error.value = result.reason || 'Authentication failed'
     }
   } catch (err) {
     error.value = 'Server error'
     console.error('Login failed:', err)
+  } finally {
+    loading.value = false
   }
 }
 </script>
