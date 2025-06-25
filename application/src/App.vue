@@ -2,6 +2,7 @@
   <router-view />
   <AppFooter v-if="!hideFooter" />
 </template>
+
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { computed, onMounted, onUnmounted } from 'vue'
@@ -16,20 +17,20 @@ const hideFooter = computed(() =>
 )
 
 onMounted(() => {
-  if (window.Telegram?.WebApp) {
-    Telegram.WebApp.onEvent('ready', () => {
-      Telegram.WebApp.BackButton.show()
-      Telegram.WebApp.BackButton.onClick(() => {
-        router.back()
-      })
+  const tg = window.Telegram?.WebApp
+  if (tg && tg.initDataUnsafe) {
+    tg.BackButton.show()
+    tg.BackButton.onClick(() => {
+      router.back()
     })
   }
 })
 
 onUnmounted(() => {
-  if (window.Telegram?.WebApp?.BackButton) {
-    Telegram.WebApp.BackButton.hide()
-    Telegram.WebApp.BackButton.onClick(null)
+  const tg = window.Telegram?.WebApp
+  if (tg && tg.BackButton) {
+    tg.BackButton.hide()
+    tg.BackButton.onClick(null)
   }
 })
 
@@ -53,7 +54,7 @@ useHead({
     },
     {
       rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Prata&display=swap',
+      href: 'https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;1,700&family=Prata&display=swap',
     },
   ],
 })
