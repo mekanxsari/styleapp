@@ -60,7 +60,7 @@ async function loginWithTelegram() {
     if (result.success) {
       localStorage.setItem('session_token', result.token)
       localStorage.setItem('user_id', result.id)
-      await router.push('/')
+      await router.push('/likes')
     } else {
       error.value = result.reason || 'Authentication failed'
     }
