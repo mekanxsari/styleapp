@@ -135,8 +135,13 @@ function toggleCapsulaLike(capsula) {
   updateLike(capsula.id, 'capsulas', capsula.liked)
 }
 
-function goToStore(url) {
-  window.open(url, '_blank')
+function goToStore(link) {
+  const tg = window.Telegram?.WebApp
+  if (tg?.openLink) {
+    tg.openLink(link, { try_instant_view: true })
+  } else {
+    window.open(link, '_blank')
+  }
 }
 
 async function updateLike(id, type, liked) {

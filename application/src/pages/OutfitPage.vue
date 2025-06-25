@@ -129,7 +129,6 @@ function goToStore(link) {
   }
 }
 
-
 async function updateLike(id, type, liked) {
   try {
     await fetch(`${API_URL}/like/${id}`, {

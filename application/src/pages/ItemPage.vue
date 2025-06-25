@@ -22,7 +22,7 @@
         </ul>
         <div class="description">{{ item.description }}</div>
         <span class="store">Доступно:&nbsp;<b>{{ item.store }}</b></span>
-        <a :href="item.storeLink" class="store-btn">В магазин</a>
+        <div class="store-btn" @click.prevent="goToStore(item.storeLink)">В магазин</div>
       </div>
 
       <img :src="item.image" class="img" />
@@ -133,6 +133,15 @@ function toggleCapsulaLike(capsula) {
 function toggleItemLike(i) {
   i.liked = !i.liked
   updateLike(i.id, 'clothes', i.liked)
+}
+
+function goToStore(link) {
+  const tg = window.Telegram?.WebApp
+  if (tg?.openLink) {
+    tg.openLink(link, { try_instant_view: true })
+  } else {
+    window.open(link, '_blank')
+  }
 }
 
 async function updateLike(id, type, liked) {
