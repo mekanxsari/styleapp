@@ -21,7 +21,7 @@
           <li>{{ item.category }}</li>
         </ul>
         <div class="description">{{ item.description }}</div>
-        <span class="store">Доступно:&nbsp;<b>{{ item.store }}</b></span>
+        <span class="store">Доступно:&nbsp;<b>{{ item.store }}</b></span> 
         <div class="store-btn" @click.prevent="goToStore(item.storeLink)">В магазин</div>
       </div>
 

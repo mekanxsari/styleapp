@@ -20,7 +20,7 @@ onMounted(() => {
   const tg = window.Telegram?.WebApp
 
   if (tg && tg.initDataUnsafe) {
-    if (['/login'].includes(route.path)) {
+    if (['/login', '/'].includes(route.path)) {
       tg.BackButton.hide()
     } else {
       tg.BackButton.show()
