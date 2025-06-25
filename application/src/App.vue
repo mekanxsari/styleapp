@@ -5,7 +5,7 @@
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useHead } from '@vueuse/head'
 import AppFooter from './components/AppFooter.vue'
 
@@ -35,11 +35,11 @@ function setupBackButton(path) {
 onMounted(() => {
   if (tg && tg.initDataUnsafe) {
     setupBackButton(route.path)
-  }
-})
 
-watch(() => route.path, (newPath) => {
-  setupBackButton(newPath)
+    router.afterEach((to) => {
+      setupBackButton(to.path)
+    })
+  }
 })
 
 onUnmounted(() => {
