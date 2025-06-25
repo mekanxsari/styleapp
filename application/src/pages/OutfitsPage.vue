@@ -64,7 +64,7 @@
         </li>
       </ul>
 
-      <div v-if="loading" class="loading" style="text-align: center;">Загрузка...</div>
+      <div v-if="loading && hasMore" class="loading" style="text-align: center;">Загрузка...</div>
     </div>
     <div class="space"></div>
   </div>
