@@ -69,7 +69,6 @@
     <div class="space"></div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { API_URL, SITE_URL } from '../api'
@@ -87,6 +86,8 @@ const pageSize = 10
 const loading = ref(false)
 const hasMore = ref(true)
 
+let fetchController = null
+
 function toggleDropdown(index) {
   openDropdown.value = openDropdown.value === index ? null : index
 }
@@ -94,9 +95,15 @@ function toggleDropdown(index) {
 function selectOption(index, value) {
   if (index === 0) selectedType.value = value
   if (index === 1) selectedSeason.value = value
+
   outfits.value = []
   page.value = 1
   hasMore.value = true
+
+  if (fetchController) {
+    fetchController.abort()
+  }
+
   loadOutfits()
   openDropdown.value = null
 }
@@ -127,12 +134,16 @@ async function loadOutfits() {
   if (loading.value || !hasMore.value) return
   loading.value = true
 
+  fetchController = new AbortController()
+
   try {
     const res = await fetch(`${API_URL}/outfits?${buildQueryParams()}`, {
+      signal: fetchController.signal,
       headers: {
         'x-user-id': localStorage.getItem('user_id') || '1'
       }
     })
+
     const data = await res.json()
 
     if (data.length < pageSize) hasMore.value = false
@@ -158,7 +169,9 @@ async function loadOutfits() {
 
     page.value++
   } catch (err) {
-    console.error('Error loading outfits:', err)
+    if (err.name !== 'AbortError') {
+      console.error('Error loading outfits:', err)
+    }
   } finally {
     loading.value = false
   }
@@ -203,5 +216,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
+  if (fetchController) fetchController.abort()
 })
 </script>
