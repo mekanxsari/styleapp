@@ -78,7 +78,7 @@ async function loginWithTelegram() {
     if (result.success) {
       localStorage.setItem('session_token', result.token)
       localStorage.setItem('user_id', result.id)
-      await router.push('/likes')
+      await router.push('/')
     } else {
       error.value = result.reason || 'Authentication failed'
     }
@@ -92,26 +92,6 @@ async function loginWithTelegram() {
 </script>
 
 <style scoped>
-.button {
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #2c2c2c;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .spinner {
   animation: spin 1s linear infinite;
 }
