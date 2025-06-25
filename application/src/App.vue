@@ -1,3 +1,8 @@
+<template>
+  <router-view />
+  <AppFooter v-if="!hideFooter" />
+</template>
+
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { computed, onMounted, onUnmounted } from 'vue'
