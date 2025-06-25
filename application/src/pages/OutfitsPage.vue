@@ -64,11 +64,17 @@
         </li>
       </ul>
 
-      <div v-if="loading && hasMore" class="loading" style="text-align: center;">Загрузка...</div>
+      <div v-if="loading && hasMore && outfits.length > 0" class="loading" style="text-align: center;">Загрузка...</div>
+
+      <div v-else-if="!hasMore && outfits.length > 0" class="end-message" style="text-align: center;">Больше образов нет</div>
+
+      <div v-else-if="!loading && outfits.length === 0" class="empty-message" style="text-align: center;">Ничего не найдено</div>
     </div>
+
     <div class="space"></div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { API_URL, SITE_URL } from '../api'
@@ -87,6 +93,7 @@ const loading = ref(false)
 const hasMore = ref(true)
 
 let fetchController = null
+let scrollTimeout = null
 
 function toggleDropdown(index) {
   openDropdown.value = openDropdown.value === index ? null : index
@@ -178,12 +185,16 @@ async function loadOutfits() {
 }
 
 function onScroll() {
-  const scrollTop = window.scrollY
-  const windowHeight = window.innerHeight
-  const docHeight = document.documentElement.scrollHeight
-  if (scrollTop + windowHeight >= docHeight - 100) {
-    loadOutfits()
-  }
+  if (scrollTimeout) clearTimeout(scrollTimeout)
+
+  scrollTimeout = setTimeout(() => {
+    const scrollTop = window.scrollY
+    const windowHeight = window.innerHeight
+    const docHeight = document.documentElement.scrollHeight
+    if (scrollTop + windowHeight >= docHeight - 100) {
+      loadOutfits()
+    }
+  }, 150)
 }
 
 function toggleOutfitLike(outfit) {
