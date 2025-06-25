@@ -11,12 +11,11 @@ import AppFooter from './components/AppFooter.vue'
 
 const route = useRoute()
 const router = useRouter()
-
-const hideFooter = computed(() =>
-  ['/login'].includes(route.path)
-)
-
 const tg = window.Telegram?.WebApp
+
+const hideFooter = computed(() => ['/login'].includes(route.path))
+
+const navStack = []
 
 function setupBackButton(path) {
   if (!tg) return
@@ -27,20 +26,32 @@ function setupBackButton(path) {
   } else {
     tg.BackButton.show()
     tg.BackButton.onClick(() => {
-      router.back()
+      navStack.pop()
+      const previous = navStack.pop()
+
+      if (previous && previous !== '/login') {
+        router.push(previous)
+      } else {
+        router.push('/')
+      }
     })
   }
 }
 
-
 onMounted(() => {
-  if (tg && tg.initDataUnsafe) {
-    setupBackButton(route.path)
+  if (!tg || !tg.initDataUnsafe) return
 
-    router.afterEach((to) => {
-      setupBackButton(to.path)
-    })
-  }
+  navStack.push(route.path)
+  setupBackButton(route.path)
+
+  router.afterEach((to, from) => {
+    const last = navStack[navStack.length - 1]
+    if (last !== to.path) {
+      navStack.push(to.path)
+    }
+
+    setupBackButton(to.path)
+  })
 })
 
 onUnmounted(() => {
