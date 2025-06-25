@@ -120,9 +120,15 @@ function toggleItemLike(item) {
   updateLike(item.id, 'clothes', item.liked)
 }
 
-function goToStore(url) {
-  window.location.href = url
+function goToStore(link) {
+  const tg = window.Telegram?.WebApp
+  if (tg?.openLink) {
+    tg.openLink(link, { try_instant_view: true })
+  } else {
+    window.open(link, '_blank')
+  }
 }
+
 
 async function updateLike(id, type, liked) {
   try {
