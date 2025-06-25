@@ -496,6 +496,9 @@ li {
     color: #6f6f6f;
     user-select: none;
     font-family: "Inter", sans-serif;
+    text-decoration: none;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .dropdown-options {

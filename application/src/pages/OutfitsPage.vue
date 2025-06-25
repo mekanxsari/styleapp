@@ -139,16 +139,22 @@ async function loadOutfits() {
 
     extractFilters(data)
 
-    outfits.value.push(
-      ...data.map(o => ({
-        id: o.id,
-        title: o.title,
-        image: `${SITE_URL}/app-images/${o.image_url}`,
-        season: o.season,
-        style: o.label,
-        liked: o.liked
-      }))
-    )
+    const newOutfits = data.map(o => ({
+      id: o.id,
+      title: o.title,
+      image: `${SITE_URL}/app-images/${o.image_url}`,
+      season: o.season,
+      style: o.label,
+      liked: o.liked
+    }))
+
+    if (page.value === 1) {
+      outfits.value = newOutfits
+    } else {
+      const existingIds = new Set(outfits.value.map(o => o.id))
+      const uniqueNew = newOutfits.filter(o => !existingIds.has(o.id))
+      outfits.value.push(...uniqueNew)
+    }
 
     page.value++
   } catch (err) {
