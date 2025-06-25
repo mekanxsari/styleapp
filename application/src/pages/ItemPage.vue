@@ -132,7 +132,7 @@ function toggleCapsulaLike(capsula) {
 
 function toggleItemLike(i) {
   i.liked = !i.liked
-  updateLike(i.id, 'items', i.liked)
+  updateLike(i.id, 'clothes', i.liked)
 }
 
 async function updateLike(id, type, liked) {
