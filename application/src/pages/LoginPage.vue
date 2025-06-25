@@ -27,44 +27,44 @@
   </div>
 </template>
 <script>
-import { API_URL } from '../api';
+import { API_URL } from '../api'
+
 export default {
   data() {
     return {
       error: ''
-    };
+    }
   },
   methods: {
-  async loginWithTelegram() {
-    const rawInitData = window.Telegram?.WebApp?.initData;
+    async loginWithTelegram() {
+      const alias = window.Telegram?.WebApp?.initDataUnsafe?.user?.username
 
-    if (!rawInitData) {
-      this.error = "Telegram initData missing.";
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/auth`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ initData: rawInitData })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        localStorage.setItem('session_token', result.token);
-        localStorage.setItem('user_id', result.id);
-        this.$router.push('/');
-      } else {
-        this.error = result.reason || 'Authentication failed';
+      if (!alias) {
+        this.error = 'Telegram username not available.'
+        return
       }
-    } catch (err) {
-      this.error = 'Server error';
-      console.error('Login failed:', err);
+
+      try {
+        const response = await fetch(`${API_URL}/auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alias })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          localStorage.setItem('session_token', result.token)
+          localStorage.setItem('user_id', result.id)
+          this.$router.push('/')
+        } else {
+          this.error = result.reason || 'Authentication failed'
+        }
+      } catch (err) {
+        this.error = 'Server error'
+        console.error('Login failed:', err)
+      }
     }
   }
 }
-};
-
 </script>
