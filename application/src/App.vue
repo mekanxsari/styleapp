@@ -2,18 +2,38 @@
   <router-view />
   <AppFooter v-if="!hideFooter" />
 </template>
-
 <script setup>
-import { useRoute } from 'vue-router'
-import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useHead } from '@vueuse/head'
 import AppFooter from './components/AppFooter.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const hideFooter = computed(() =>
   ['/login'].includes(route.path)
 )
+
+function setupTelegramBackButton() {
+  if (window.Telegram?.WebApp?.BackButton) {
+    Telegram.WebApp.BackButton.show()
+    Telegram.WebApp.BackButton.onClick(() => {
+      router.back()
+    })
+  }
+}
+
+onMounted(() => {
+  setupTelegramBackButton()
+})
+
+onUnmounted(() => {
+  if (Telegram.WebApp?.BackButton) {
+    Telegram.WebApp.BackButton.hide()
+    Telegram.WebApp.BackButton.onClick(null)
+  }
+})
 
 useHead({
   title: 'StyleApp',
