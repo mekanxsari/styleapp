@@ -15,21 +15,19 @@ const hideFooter = computed(() =>
   ['/login'].includes(route.path)
 )
 
-function setupTelegramBackButton() {
-  if (window.Telegram?.WebApp?.BackButton) {
-    Telegram.WebApp.BackButton.show()
-    Telegram.WebApp.BackButton.onClick(() => {
-      router.back()
+onMounted(() => {
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.onEvent('ready', () => {
+      Telegram.WebApp.BackButton.show()
+      Telegram.WebApp.BackButton.onClick(() => {
+        router.back()
+      })
     })
   }
-}
-
-onMounted(() => {
-  setupTelegramBackButton()
 })
 
 onUnmounted(() => {
-  if (Telegram.WebApp?.BackButton) {
+  if (window.Telegram?.WebApp?.BackButton) {
     Telegram.WebApp.BackButton.hide()
     Telegram.WebApp.BackButton.onClick(null)
   }
@@ -61,7 +59,6 @@ useHead({
   script: [
     {
       src: 'https://telegram.org/js/telegram-web-app.js',
-      defer: true,
     },
   ],
 })
