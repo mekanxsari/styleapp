@@ -30,7 +30,7 @@ function setupBackButton(path) {
       const referrer = document.referrer
       const loginWasLast = referrer.includes('/login')
 
-      if (window.history.length > 1 && !loginWasLast) {
+      if (window.history.length > 0 && !loginWasLast) {
         router.back()
       } else {
         router.push('/')
