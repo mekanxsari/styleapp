@@ -21,7 +21,7 @@ const tg = window.Telegram?.WebApp
 function setupBackButton(path) {
   if (!tg) return
 
-  if (path === '/login') {
+  if (path === '/login' || path === '/') {
     tg.BackButton.hide()
     tg.BackButton.onClick(null)
   } else {
