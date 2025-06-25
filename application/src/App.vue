@@ -5,7 +5,7 @@
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useHead } from '@vueuse/head'
 import AppFooter from './components/AppFooter.vue'
 
@@ -16,25 +16,34 @@ const hideFooter = computed(() =>
   ['/login'].includes(route.path)
 )
 
-onMounted(() => {
-  const tg = window.Telegram?.WebApp
+const tg = window.Telegram?.WebApp
 
+function setupBackButton(path) {
+  if (!tg) return
+
+  if (path === '/login') {
+    tg.BackButton.hide()
+    tg.BackButton.onClick(null)
+  } else {
+    tg.BackButton.show()
+    tg.BackButton.onClick(() => {
+      router.back()
+    })
+  }
+}
+
+onMounted(() => {
   if (tg && tg.initDataUnsafe) {
-    if (['/login', '/'].includes(route.path)) {
-      tg.BackButton.hide()
-    } else {
-      tg.BackButton.show()
-      tg.BackButton.onClick(() => {
-        router.back()
-      })
-    }
+    setupBackButton(route.path)
   }
 })
 
+watch(() => route.path, (newPath) => {
+  setupBackButton(newPath)
+})
 
 onUnmounted(() => {
-  const tg = window.Telegram?.WebApp
-  if (tg && tg.BackButton) {
+  if (tg?.BackButton) {
     tg.BackButton.hide()
     tg.BackButton.onClick(null)
   }
