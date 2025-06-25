@@ -21,13 +21,16 @@ const tg = window.Telegram?.WebApp
 function setupBackButton(path) {
   if (!tg) return
 
-  if (path === '/login') {
+  if (path === '/login' || path === '/') {
     tg.BackButton.hide()
     tg.BackButton.onClick(null)
   } else {
     tg.BackButton.show()
     tg.BackButton.onClick(() => {
-      if (window.history.length > 1) {
+      const referrer = document.referrer
+      const loginWasLast = referrer.includes('/login')
+
+      if (window.history.length > 1 && !loginWasLast) {
         router.back()
       } else {
         router.push('/')
