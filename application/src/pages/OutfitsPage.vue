@@ -63,12 +63,6 @@
           </router-link>
         </li>
       </ul>
-
-      <div v-if="loading && hasMore && outfits.length > 0" class="loading" style="text-align: center;">Загрузка...</div>
-
-      <div v-else-if="!hasMore && outfits.length > 0" class="end-message" style="text-align: center;">Больше образов нет</div>
-
-      <div v-else-if="!loading && outfits.length === 0" class="empty-message" style="text-align: center;">Ничего не найдено</div>
     </div>
 
     <div class="space"></div>
