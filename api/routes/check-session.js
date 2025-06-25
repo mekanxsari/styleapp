@@ -3,22 +3,27 @@ const router = express.Router();
 const pool = require('../db');
 
 router.post("/", async (req, res) => {
-  const { token } = req.body;
+  const { token, user_id } = req.body;
 
-  if (!token) {
-    return res.status(400).json({ valid: false });
+  if (!token || !user_id) {
+    return res.status(400).json({ valid: false, reason: "Missing token or user ID" });
   }
 
-  const result = await pool.query(`
-    SELECT id, alias, is_special FROM users
-    WHERE session_token = $1 AND session_expires_at > NOW()
-  `, [token]);
+  try {
+    const result = await pool.query(`
+      SELECT alias FROM users
+      WHERE id = $1 AND session_token = $2 AND session_expires_at > NOW()
+    `, [user_id, token]);
 
-  if (result.rowCount === 0) {
-    return res.status(401).json({ valid: false });
+    if (result.rowCount === 0) {
+      return res.status(401).json({ valid: false });
+    }
+
+    res.json({ valid: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ valid: false, reason: 'Database error' });
   }
-
-  res.json({ valid: true, user: result.rows[0] });
 });
 
 module.exports = router;

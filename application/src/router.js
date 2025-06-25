@@ -1,27 +1,28 @@
 import { API_URL } from './api';
-import { createRouter, createWebHistory } from 'vue-router'
-import CapsulasPage from './pages/CapsulasPage.vue'
-import CapsulaPage from './pages/CapsulaPage.vue'
-import OutfitPage from './pages/OutfitPage.vue'
-import OutfitsPage from './pages/OutfitsPage.vue'
-import ItemPage from './pages/ItemPage.vue'
-import LikesPage from './pages/LikesPage.vue'
-import LoginPage from './pages/LoginPage.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+
+import CapsulasPage from './pages/CapsulasPage.vue';
+import CapsulaPage from './pages/CapsulaPage.vue';
+import OutfitPage from './pages/OutfitPage.vue';
+import OutfitsPage from './pages/OutfitsPage.vue';
+import ItemPage from './pages/ItemPage.vue';
+import LikesPage from './pages/LikesPage.vue';
+import LoginPage from './pages/LoginPage.vue';
 
 const routes = [
   { path: '/', component: CapsulasPage },
   { path: '/capsula/:id', component: CapsulaPage },
-  { path: '/outfit/:id', component: OutfitPage},
+  { path: '/outfit/:id', component: OutfitPage },
   { path: '/outfits', component: OutfitsPage },
   { path: '/item/:id', component: ItemPage },
   { path: '/likes', component: LikesPage },
   { path: '/login', component: LoginPage }
-]
+];
 
 export const router = createRouter({
   history: createWebHistory(),
   routes
-})
+});
 
 router.beforeEach(async (to, from, next) => {
   if (to.path === '/login') {
@@ -29,7 +30,9 @@ router.beforeEach(async (to, from, next) => {
   }
 
   const token = localStorage.getItem('session_token');
-  if (!token) {
+  const user_id = localStorage.getItem('user_id');
+
+  if (!token || !user_id) {
     return next('/login');
   }
 
@@ -37,17 +40,22 @@ router.beforeEach(async (to, from, next) => {
     const response = await fetch(`${API_URL}/check-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token })
+      body: JSON.stringify({ token, user_id })
     });
+
     const result = await response.json();
+
     if (result.valid) {
-      next();
+      return next();
     } else {
       localStorage.removeItem('session_token');
-      next('/login');
+      localStorage.removeItem('user_id');
+      return next('/login');
     }
   } catch (err) {
+    console.error('Session check failed:', err);
     localStorage.removeItem('session_token');
-    next('/login');
+    localStorage.removeItem('user_id');
+    return next('/login');
   }
 });

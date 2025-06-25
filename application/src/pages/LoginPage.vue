@@ -2,8 +2,9 @@
   <div class="auth-container">
     <div class="login-container">
       <div class="space"></div>
+
       <div class="logo">
-        <img src="/public/images/logo.png" width="117px" height="104px" />
+        <img src="/images/logo.png" width="117px" height="104px" />
       </div>
 
       <span class="text">
@@ -13,12 +14,29 @@
       <div class="inline-space"></div>
 
       <form class="form" @submit.prevent="loginWithTelegram">
-        <input
-          type="submit"
-          class="button"
-          :value="loading ? 'Загрузка...' : 'Войти через Telegram'"
-          :disabled="loading"
-        />
+        <button type="submit" class="button" :disabled="loading">
+          <template v-if="loading">
+            <svg
+              class="spinner"
+              width="24"
+              height="24"
+              viewBox="0 0 50 50"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                class="path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              />
+            </svg>
+          </template>
+          <template v-else>
+            Войти через Telegram
+          </template>
+        </button>
       </form>
 
       <p v-if="error" class="text">
@@ -72,3 +90,43 @@ async function loginWithTelegram() {
   }
 }
 </script>
+
+<style scoped>
+.button {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.path {
+  stroke: white;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>
