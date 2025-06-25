@@ -27,10 +27,7 @@ function setupBackButton(path) {
   } else {
     tg.BackButton.show()
     tg.BackButton.onClick(() => {
-      const referrer = document.referrer
-      const loginWasLast = referrer.includes('/login')
-
-      if (!loginWasLast) {
+      if (window.history.length > 1) {
         router.back()
       } else {
         router.push('/')
@@ -38,6 +35,7 @@ function setupBackButton(path) {
     })
   }
 }
+
 
 onMounted(() => {
   if (tg && tg.initDataUnsafe) {
