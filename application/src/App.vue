@@ -19,10 +19,19 @@ const hideFooter = computed(() =>
 onMounted(() => {
   const tg = window.Telegram?.WebApp
   if (tg && tg.initDataUnsafe) {
-    tg.BackButton.show()
-    tg.BackButton.onClick(() => {
-      router.back()
-    })
+    if (['/login', '/'].includes(route.path)) {
+      tg.BackButton.hide()
+      tg.BackButton.onClick(null)
+
+      tg.CloseButton.show?.()
+    } else {
+      tg.BackButton.show()
+      tg.BackButton.onClick(() => {
+        router.back()
+      })
+
+      tg.CloseButton.hide?.()
+    }
   }
 })
 
