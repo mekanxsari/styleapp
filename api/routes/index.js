@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+//USER INTERFACE API
 const authRouter = require('./auth');
 const checkSessionRouter = require('./check-session');
 const capsulasRouter = require('./capsulas');
@@ -20,5 +21,11 @@ router.use('/outfit', outfitRouter);
 router.use('/cloth', clothRouter);
 router.use('/likes', likesRouter);
 router.use('/like', likeRouter);
+
+
+//STYLIST DASHBOARD API
+const authStylistRouter = require('./stylist-auth');
+
+router.use('/stylist-auth', authStylistRouter);
 
 module.exports = router;
