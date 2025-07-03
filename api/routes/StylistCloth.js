@@ -10,7 +10,7 @@ router.get('/:id', async (req, res) => {
         id,
         image_url,
         title,
-        descripiton,
+        description,
         category,
         artikul,
         store_name,

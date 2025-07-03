@@ -417,7 +417,7 @@ export default {
 
     async openEditModal(item) {
       try {
-        const response = await fetch(`${API_URL}/stylist-clothes/${item.id}`);
+        const response = await fetch(`${API_URL}/stylist-cloth/${item.id}`);
         if (!response.ok) throw new Error('Failed to fetch item for editing');
         const data = await response.json();
 
