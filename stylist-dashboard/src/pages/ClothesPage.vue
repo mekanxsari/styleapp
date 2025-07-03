@@ -42,10 +42,7 @@
                 <th>Изображение</th>
                 <th>Название</th>
                 <th>Тип</th>
-                <th>Описание</th>
-                <th>Тип</th>
                 <th>Артикул</th>
-                <th>Название магазина</th>
                 <th>Ссылка на магазин</th>
                 <th>Действия</th>
               </tr>
@@ -58,16 +55,13 @@
                 </td>
                 <td>{{ item.id }}</td>
                 <td>
-                  <img :src="item.image" :alt="item.title" style="width: 150px; height: 150px;" />
+                  <img :src="SITE_URL + '/app-images/' + item.image_url" :alt="item.title" style="width: 150px; height: 150px;" />
                 </td>
                 <td>{{ item.title }}</td>
                 <td>{{ item.category }}</td>
-                <td>{{ item.description }}</td>
-                <td>{{ item.type }}</td>
                 <td>{{ item.artikul }}</td>
-                <td>{{ item.store_name }}</td>
                 <td>
-                  <a :href="item.store_url" target="_blank">{{ item.store_url.replace(/^https?:\/\//, '') }}</a>
+                  <a :href="item.store_url" target="_blank">{{ item.store_name }}</a>
                 </td>
                 <td>
                   <button class="btn btn-sm btn-warning mr-1" data-toggle="modal" data-target="#editModal"
@@ -352,48 +346,47 @@
 </template>
 
 <script>
+import { API_URL, SITE_URL } from '../api'
+
 export default {
   data() {
     return {
-      items: [
-        {
-          id: 1,
-          image: 'https://mekanxsari.ru/app-images/1.jpg',
-          title: 'Платье летнее',
-          category: 'Top',
-          description: 'Легкое платье для лета',
-          type: 'Одежды',
-          artikul: 'ART-001',
-          store_name: 'Zara',
-          store_url: 'https://zara.com',
-        },
-        {
-          id: 2,
-          image: 'https://mekanxsari.ru/app-images/2.jpg',
-          title: 'Платье летнее',
-          category: 'Top',
-          description: 'Легкое платье для лета',
-          type: 'Одежды',
-          artikul: 'ART-001',
-          store_name: 'Zara',
-          store_url: 'https://zara.com',
-        },
-        {
-          id: 3,
-          image: 'https://mekanxsari.ru/app-images/3.jpg',
-          title: 'Платье летнее',
-          category: 'Top',
-          description: 'Легкое платье для лета',
-          type: 'Одежды',
-          artikul: 'ART-001',
-          store_name: 'Zara',
-          store_url: 'https://zara.com',
-        },
-      ],
+      items: [],
       selectedIds: [],
+      SITE_URL,
+      page: 1,
+      isLoading: false,
+      allLoaded: false,
     };
   },
   methods: {
+    async fetchClothes() {
+      if (this.isLoading || this.allLoaded) return;
+      this.isLoading = true;
+      try {
+        const response = await fetch(`${API_URL}/stylist-clothes?page=${this.page}`);
+        if (!response.ok) throw new Error('Failed to fetch clothes');
+        const data = await response.json();
+        if (data.length === 0) {
+          this.allLoaded = true;
+        } else {
+          this.items.push(...data);
+          this.page += 1;
+        }
+      } catch (error) {
+        console.error('Error fetching clothes:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    handleScroll() {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      const fullHeight = document.body.offsetHeight;
+      if (scrollY + viewportHeight >= fullHeight - 300) {
+        this.fetchClothes();
+      }
+    },
     prepareDelete(id) {
       $('#deleteModal').modal('show');
     },
@@ -402,6 +395,9 @@ export default {
     },
   },
   mounted() {
+    this.fetchClothes();
+    window.addEventListener('scroll', this.handleScroll);
+
     document.addEventListener('DOMContentLoaded', () => {
       let rowIdToDelete = null;
 
@@ -456,7 +452,6 @@ export default {
       itemImageInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
           itemPreview.src = e.target.result;
@@ -479,7 +474,6 @@ export default {
       editImageInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
           editImagePreview.src = e.target.result;
@@ -499,7 +493,6 @@ export default {
       outfitImageInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
           outfitPreview.src = e.target.result;
@@ -519,40 +512,35 @@ export default {
       document.addEventListener('change', function (e) {
         const checkbox = e.target.closest('.select-checkbox');
         if (!checkbox) return;
-
         const row = checkbox.closest('tr');
         const id = row.getAttribute('data-id');
         const title = row.querySelector('td:nth-child(4)').innerText;
         const imageSrc = row.querySelector('td:nth-child(3) img')?.getAttribute('src') || '';
-
         if (checkbox.checked) {
           selectedItems.set(id, { title, imageSrc });
         } else {
           selectedItems.delete(id);
         }
-
         createOutfitBtn.disabled = selectedItems.size < 3;
       });
 
       $('#createOutfitModal').on('show.bs.modal', () => {
         selectedItemsPreview.innerHTML = '';
-
         selectedItems.forEach(({ title, imageSrc }, id) => {
           const col = document.createElement('div');
           col.className = 'col-md-4';
           col.dataset.id = id;
-
           col.innerHTML = `
-      <div class="card mb-3">
-        <img src="${imageSrc}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${title}">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <span class="item-title">${title}</span>
-          <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${id}">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
-    `;
+            <div class="card mb-3">
+              <img src="${imageSrc}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${title}">
+              <div class="card-body d-flex justify-content-between align-items-center">
+                <span class="item-title">${title}</span>
+                <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${id}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
           selectedItemsPreview.appendChild(col);
         });
       });
@@ -560,19 +548,18 @@ export default {
       selectedItemsPreview.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-selected');
         if (!removeBtn) return;
-
         const id = removeBtn.dataset.id;
         selectedItems.delete(id);
-
         const checkbox = document.querySelector(`.select-checkbox[data-id="${id}"]`);
         if (checkbox) checkbox.checked = false;
-
         const previewCard = selectedItemsPreview.querySelector(`div[data-id="${id}"]`);
         if (previewCard) previewCard.remove();
-
         createOutfitBtn.disabled = selectedItems.size < 3;
       });
     });
   },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll);
+  }
 };
 </script>
