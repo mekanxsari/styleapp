@@ -163,7 +163,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="submit" class="btn btn-primary">Добавить</button>
+              <button type="submit" class="btn btn-primary" @click="openEditModal(item)">Добавить</button>
             </div>
           </div>
         </form>
@@ -185,7 +185,7 @@
               <div class="form-group">
                 <label>Изображение</label>
                 <div class="image-upload-container mb-3">
-                  <img src="https://mekanxsari.ru/app-images/1.jpg" id="editImagePreview" class="img-fluid"
+                  <img src="" id="editImagePreview" class="img-fluid"
                     alt="Текущее изображение" style="max-height: 300px; width: auto; display: block; margin: 0 auto;" />
                   <div class="upload-overlay">
                     <div class="text-center text-white">
@@ -217,23 +217,23 @@
 
               <div class="form-group">
                 <label>Описание</label>
-                <textarea class="form-control" rows="3" name="description">Легкое платье для лета</textarea>
+                <textarea class="form-control" rows="3" name="description"></textarea>
               </div>
 
               <div class="form-row">
                 <div class="form-group col-md-6">
                   <label>Артикул</label>
-                  <input type="text" class="form-control" value="ART-001" name="artikul" />
+                  <input type="text" class="form-control" value="" name="artikul" />
                 </div>
                 <div class="form-group col-md-6">
                   <label>Магазин</label>
-                  <input type="text" class="form-control" value="Zara" name="store_name" />
+                  <input type="text" class="form-control" value="" name="store_name" />
                 </div>
               </div>
 
               <div class="form-group">
                 <label>Ссылка на магазин</label>
-                <input type="url" class="form-control" value="https://zara.com/" name="store_url" />
+                <input type="url" class="form-control" value="" name="store_url" />
               </div>
             </div>
             <div class="modal-footer">
@@ -344,7 +344,6 @@
     Образ успешно создан!
   </div>
 </template>
-
 <script>
 import { API_URL, SITE_URL } from '../api'
 
@@ -358,6 +357,7 @@ export default {
       isLoading: false,
       allLoaded: false,
       itemIdToDelete: null,
+      itemIdToEdit: null,
     };
   },
   methods: {
@@ -416,6 +416,7 @@ export default {
     },
 
     async openEditModal(item) {
+      this.itemIdToEdit = item.id;
       try {
         const response = await fetch(`${API_URL}/stylist-cloth/${item.id}`);
         if (!response.ok) throw new Error('Failed to fetch item for editing');
@@ -423,7 +424,14 @@ export default {
 
         const form = document.getElementById('editForm');
         form.elements.title.value = data.title || '';
-        form.elements.type.value = data.category || '';
+        const categoryMap = {
+          'Верх': 'top',
+          'Низ': 'bottom',
+          'Верхняя одежда': 'outerwear',
+          'Обувь': 'shoes',
+          'Аксессуар': 'accessories'
+        };
+        form.elements.type.value = categoryMap[data.category] || data.category || '';
         form.elements.description.value = data.description || '';
         form.elements.artikul.value = data.artikul || '';
         form.elements.store_name.value = data.store_name || '';
@@ -435,6 +443,49 @@ export default {
         console.error('Error loading item for edit:', error);
       }
     },
+
+    async confirmEdit() {
+  const form = document.getElementById('editForm');
+  const formData = new FormData();
+
+  const id = this.itemIdToEdit;
+  if (!id) return;
+
+  formData.append('title', form.elements.title.value);
+  formData.append('description', form.elements.description.value);
+  formData.append('category', form.elements.type.value);
+  formData.append('artikul', form.elements.artikul.value);
+  formData.append('store_name', form.elements.store_name.value);
+  formData.append('store_url', form.elements.store_url.value);
+
+  const imageFile = document.getElementById('editImageInput')?.files?.[0];
+  if (imageFile) {
+    formData.append('image', imageFile);
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/stylist-cloth/${id}`, {
+      method: 'PUT',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Failed to save changes');
+
+    const updated = await response.json();
+    const index = this.items.findIndex(item => item.id === id);
+    if (index !== -1) this.$set(this.items, index, updated);
+
+    $('#editModal').modal('hide');
+    const alert = document.getElementById('editSuccess');
+    alert.style.display = 'block';
+    setTimeout(() => {
+      alert.style.display = 'none';
+    }, 2000);
+  } catch (error) {
+    console.error('Error saving item:', error);
+    alert('Ошибка при сохранении!');
+  }
+},
   },
   mounted() {
     this.fetchClothes();
@@ -442,6 +493,11 @@ export default {
 
     document.getElementById('confirmDelete').onclick = () => {
       this.confirmDelete();
+    };
+
+    // Hook confirmEdit button to method
+    document.getElementById('confirmEdit').onclick = () => {
+      this.confirmEdit();
     };
   },
   beforeDestroy() {
