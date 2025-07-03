@@ -41,6 +41,7 @@
                 <th>ID</th>
                 <th>Изображение</th>
                 <th>Название</th>
+                <th>Тип</th>
                 <th>Описание</th>
                 <th>Тип</th>
                 <th>Артикул</th>
@@ -60,6 +61,7 @@
                   <img :src="item.image" :alt="item.title" style="width: 150px; height: 150px;" />
                 </td>
                 <td>{{ item.title }}</td>
+                <td>{{ item.category }}</td>
                 <td>{{ item.description }}</td>
                 <td>{{ item.type }}</td>
                 <td>{{ item.artikul }}</td>
@@ -358,6 +360,7 @@ export default {
           id: 1,
           image: 'https://mekanxsari.ru/app-images/1.jpg',
           title: 'Платье летнее',
+          category: 'Top',
           description: 'Легкое платье для лета',
           type: 'Одежды',
           artikul: 'ART-001',
@@ -368,6 +371,7 @@ export default {
           id: 2,
           image: 'https://mekanxsari.ru/app-images/2.jpg',
           title: 'Платье летнее',
+          category: 'Top',
           description: 'Легкое платье для лета',
           type: 'Одежды',
           artikul: 'ART-001',
@@ -378,6 +382,7 @@ export default {
           id: 3,
           image: 'https://mekanxsari.ru/app-images/3.jpg',
           title: 'Платье летнее',
+          category: 'Top',
           description: 'Легкое платье для лета',
           type: 'Одежды',
           artikul: 'ART-001',

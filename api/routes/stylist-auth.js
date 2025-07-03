@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const result = await pool.query("SELECT * FROM users WHERE alias = $1", [alias])
+    const result = await pool.query("SELECT * admin WHERE username = $1", [alias])
     let user = result.rows[0]
 
     const token = uuidv4()
@@ -19,12 +19,12 @@ router.post('/', async (req, res) => {
 
     if (user) {
       await pool.query(
-        "UPDATE users SET session_token = $1, session_expires_at = $2 WHERE id = $3",
+        "UPDATE admin SET session_token = $1, session_expires_at = $2 WHERE id = $3",
         [token, expiresAt, user.id]
       )
     } else {
       const insertResult = await pool.query(
-        "INSERT INTO users (alias, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id",
+        "INSERT INTO admin (username, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id",
         [alias, token, expiresAt]
       )
       user = insertResult.rows[0]
