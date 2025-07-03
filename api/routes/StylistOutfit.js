@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-rrouter.post('/', upload.single('image'), async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   console.log('------ Incoming Outfit Request ------');
   console.log('Fields:', req.body);
   console.log('File:', req.file);
