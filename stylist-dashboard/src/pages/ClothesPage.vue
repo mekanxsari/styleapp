@@ -271,7 +271,7 @@
                     </div>
                   </div>
                 </div>
-                <input type="file" id="outfitImage" accept="image/*" style="display: none;" />
+                <input type="file" id="outfitImage" accept="image/*" name="image" style="display: none;" />
               </div>
               <div class="form-row">
                 <div class="form-group col-md-12">
@@ -282,7 +282,7 @@
 
                 <div class="form-group col-md-6">
                   <label>Категория</label>
-                  <select class="form-control" name="category" required>
+                  <select class="form-control" name="category" id="outfitCategory" required>
                     <option value="">Выберите категорию</option>
                     <option value="Романтический">Романтический</option>
                     <option value="Спортивный">Спортивный</option>
@@ -294,7 +294,7 @@
 
                 <div class="form-group col-md-6">
                   <label>Сезон</label>
-                  <select class="form-control" name="season" required>
+                  <select class="form-control" name="season" id="outfitSeason" required>
                     <option value="">Выберите сезон</option>
                     <option value="Зима">Зима</option>
                     <option value="Весна">Весна</option>
@@ -453,6 +453,11 @@ export default {
       const store_name = form.elements.store_name.value.trim();
       const store_url = form.elements.store_url.value.trim();
 
+      if (!title || !description || !category || !artikul || !store_name || !store_url) {
+        alert("Пожалуйста, заполните все поля.");
+        return;
+      }
+
       formData.append('title', title);
       formData.append('description', description);
       formData.append('category', category);
@@ -461,11 +466,6 @@ export default {
       formData.append('store_url', store_url);
 
       const imageFile = document.getElementById('editImageInput')?.files?.[0];
-
-      if (!title || !description || !category || !artikul || !store_name || !store_url) {
-        alert("Пожалуйста, заполните все поля.");
-        return;
-      }
 
       if (imageFile) {
         formData.append('image', imageFile);
@@ -523,6 +523,11 @@ export default {
       const store_name = form.elements.store_name.value.trim();
       const store_url = form.elements.store_url.value.trim();
 
+      if (!title || !description || !category || !artikul || !store_name || !store_url) {
+        alert("Пожалуйста, заполните все поля.");
+        return;
+      }
+
       formData.append('title', title);
       formData.append('description', description);
       formData.append('category', category);
@@ -530,11 +535,6 @@ export default {
       formData.append('store_name', store_name);
       formData.append('store_url', store_url);
       formData.append('image', imageFile);
-
-      if (!title || !description || !category || !artikul || !store_name || !store_url) {
-        alert("Пожалуйста, заполните все поля.");
-        return;
-      }
 
       try {
         const response = await fetch(`${API_URL}/stylist-cloth/`, {
@@ -610,8 +610,8 @@ export default {
       const image = document.getElementById('outfitImage')?.files?.[0];
       const title = document.getElementById('outfitTitle').value.trim();
       const description = document.getElementById('outfitDescription').value.trim();
-      const category = form.elements.category.value;
-      const season = form.elements.season.value;
+      const category = document.getElementById('outfitCategory').value;
+      const season = document.getElementById('outfitSeason').value;
 
       if (!image || !title || !category || !season) {
         alert("Пожалуйста, заполните все поля и выберите изображение.");
@@ -627,12 +627,16 @@ export default {
       formData.append('description', description);
       formData.append('category', category);
       formData.append('season', season);
-      formData.append('image', image);
 
       this.selectedIds.forEach(id => formData.append('clothes[]', id));
 
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+
       try {
-        const response = await fetch(`${API_URL}/stylist-outfit`, {
+        const response = await fetch(`${API_URL}/stylist-outfit/`, {
           method: 'POST',
           body: formData,
         });
@@ -744,6 +748,15 @@ export default {
           };
           reader.readAsDataURL(file);
         }
+      });
+    }
+
+    const Eoverlay = document.querySelector('#editModal .upload-overlay');
+    const EfileInput = document.getElementById('editImageInput');
+
+    if (Eoverlay && EfileInput) {
+      Eoverlay.addEventListener('click', () => {
+        EfileInput.click();
       });
     }
 
