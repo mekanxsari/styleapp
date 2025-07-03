@@ -20,36 +20,20 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/', upload.single('image'), async (req, res) => {
-  console.log('------ Incoming Outfit Request ------');
-  console.log('Fields:', req.body);
-  console.log('File:', req.file);
-
   const { title, description, category, season } = req.body;
   const clothesIds = req.body.clothesIds;
 
   try {
-    // Debug: check if critical values are missing
     if (!req.file) {
-      console.log('Missing image');
       return res.status(400).json({ message: 'Image is required' });
     }
 
     if (!title || !season || !category || !clothesIds) {
-      console.log('Missing fields:', { title, season, category, clothesIds });
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const image_url = req.file.filename;
     const clothesArray = Array.isArray(clothesIds) ? clothesIds : [clothesIds];
-
-    if (clothesArray.length < 3) {
-      console.log('Not enough clothes selected:', clothesArray);
-      return res.status(400).json({ message: 'At least 3 clothing items must be selected' });
-    }
-
-    console.log('Creating outfit with:', {
-      title, description, category, season, image_url, clothesArray,
-    });
 
     const result = await pool.query(
       `
@@ -64,8 +48,6 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const insertValues = clothesArray.map((_, idx) => `($1, $${idx + 2})`).join(', ');
     const insertParams = [outfitId, ...clothesArray];
-
-    console.log('Inserting into outfits_superset with:', insertParams);
 
     await pool.query(
       `INSERT INTO outfits_superset (outfit_id, clothes_id) VALUES ${insertValues}`,

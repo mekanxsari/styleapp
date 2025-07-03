@@ -6,19 +6,19 @@
           <div class="d-flex justify-content-between align-items-center flex-wrap">
             <form class="form-inline mb-2 mb-md-0" style="flex: 1 1 auto;">
               <div class="input-group mr-2 mb-2">
-                <input type="text" class="form-control search" placeholder="Поиск..." aria-label="Поиск">
+                <input v-model="searchText" type="text" class="form-control search" placeholder="Поиск..." aria-label="Поиск" />
               </div>
               <div class="form-group mr-2 mb-2">
-                <select class="form-control search-select">
-                  <option value="" selected>Все</option>
-                  <option value="id">ID</option>
-                  <option value="title">Название</option>
-                  <option value="category">Тип</option>
-                  <option value="artikul">Артикул</option>
-                  <option value="store_name">Название магазина</option>
-                </select>
+                <select v-model="searchField" class="form-control search-select">
+  <option value="">Все</option>
+  <option value="id">ID</option>
+  <option value="title">Название</option>
+  <option value="category">Тип</option>
+  <option value="artikul">Артикул</option>
+  <option value="store_name">Название магазина</option>
+</select>
               </div>
-              <button type="submit" class="btn btn-primary mb-2">Поиск</button>
+              <button @click.prevent="handleSearch" type="submit" class="btn btn-primary mb-2">Поиск</button>
             </form>
             <button class="btn btn-success ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
               data-target="#addModal">
@@ -360,6 +360,8 @@ export default {
       allLoaded: false,
       itemIdToDelete: null,
       itemIdToEdit: null,
+      searchText: '',
+      searchField: '',
     };
   },
   methods: {
@@ -655,6 +657,47 @@ export default {
         alert('Ошибка при создании образа');
       }
     },
+    async fetchClothes(reset = false) {
+  if (this.isLoading || this.allLoaded) return;
+
+  if (reset) {
+    this.items = [];
+    this.page = 1;
+    this.allLoaded = false;
+  }
+
+  this.isLoading = true;
+  try {
+    const params = new URLSearchParams({
+      page: this.page.toString(),
+    });
+
+    // Add search params only if searchText is non-empty and searchField is selected
+    if (this.searchText && this.searchField) {
+      params.append('q', this.searchText);
+      params.append('field', this.searchField);
+    }
+
+    const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch clothes');
+    const data = await response.json();
+
+    if (data.length === 0) {
+      this.allLoaded = true;
+    } else {
+      this.items.push(...data);
+      this.page += 1;
+    }
+  } catch (error) {
+    console.error('Error fetching clothes:', error);
+  } finally {
+    this.isLoading = false;
+  }
+},
+handleSearch() {
+  this.fetchClothes(true);
+},
+
   },
   mounted() {
     this.fetchClothes();
