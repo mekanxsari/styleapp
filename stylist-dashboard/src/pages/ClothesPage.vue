@@ -627,8 +627,9 @@ export default {
       formData.append('description', description);
       formData.append('category', category);
       formData.append('season', season);
+      formData.append('image', image);
 
-      this.selectedIds.forEach(id => formData.append('clothes[]', id));
+      this.selectedIds.forEach(id => formData.append('clothesIds[]', id));
 
       for (const [key, value] of formData.entries()) {
         console.log(`${key}:`, value);

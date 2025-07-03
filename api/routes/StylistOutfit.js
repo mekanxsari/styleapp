@@ -25,7 +25,7 @@ router.post('/', upload.single('image'), async (req, res) => {
   console.log('File:', req.file);
 
   const { title, description, category, season } = req.body;
-  const clothesIds = req.body['clothes[]'];
+  const clothesIds = req.body.clothesIds;
 
   try {
     // Debug: check if critical values are missing
