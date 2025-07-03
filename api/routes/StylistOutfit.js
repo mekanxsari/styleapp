@@ -1,4 +1,25 @@
-router.post('/', upload.single('image'), async (req, res) => {
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+const multer = require('multer');
+const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
+
+const uploadDir = path.join(__dirname, '..', '..', 'app-images');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const hash = crypto.randomBytes(3).toString('hex');
+    cb(null, `${hash}${ext}`);
+  },
+});
+const upload = multer({ storage });
+
+rrouter.post('/', upload.single('image'), async (req, res) => {
   console.log('------ Incoming Outfit Request ------');
   console.log('Fields:', req.body);
   console.log('File:', req.file);
@@ -57,3 +78,5 @@ router.post('/', upload.single('image'), async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+module.exports = router;
