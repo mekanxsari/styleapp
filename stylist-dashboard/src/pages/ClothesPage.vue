@@ -400,12 +400,12 @@ export default {
     async confirmDelete() {
       if (!this.itemIdToDelete) return;
       try {
-        const response = await fetch(`${API_URL}/stylist-clothes/${this.itemIdToDelete}`, {
+        const response = await fetch(`${API_URL}/stylist-cloth/${this.itemIdToDelete}`, {
           method: 'DELETE',
         });
         if (!response.ok) throw new Error('Failed to delete');
-        this.items = this.items.filter(item => item.id !== this.itemIdToDelete);
         $('#deleteModal').modal('hide');
+        this.items = this.items.filter(item => item.id !== this.itemIdToDelete);
         this.itemIdToDelete = null;
         const alert = document.getElementById('deleteSuccess');
         alert.style.display = 'block';
@@ -446,14 +446,27 @@ export default {
       const id = this.itemIdToEdit;
       if (!id) return;
 
-      formData.append('title', form.elements.title.value);
-      formData.append('description', form.elements.description.value);
-      formData.append('category', form.elements.category.value);
-      formData.append('artikul', form.elements.artikul.value);
-      formData.append('store_name', form.elements.store_name.value);
-      formData.append('store_url', form.elements.store_url.value);
+      const title = form.elements.title.value.trim();
+      const description = form.elements.description.value.trim();
+      const category = form.elements.category.value.trim();
+      const artikul = form.elements.artikul.value.trim();
+      const store_name = form.elements.store_name.value.trim();
+      const store_url = form.elements.store_url.value.trim();
+
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('category', category);
+      formData.append('artikul', artikul);
+      formData.append('store_name', store_name);
+      formData.append('store_url', store_url);
 
       const imageFile = document.getElementById('editImageInput')?.files?.[0];
+
+      if (!title || !description || !category || !artikul || !store_name || !store_url) {
+        alert("Пожалуйста, заполните все поля.");
+        return;
+      }
+
       if (imageFile) {
         formData.append('image', imageFile);
       }
@@ -494,58 +507,149 @@ export default {
     },
 
     async confirmAdd() {
-  const form = document.getElementById('addForm');
-  const formData = new FormData();
+      const form = document.getElementById('addForm');
+      const formData = new FormData();
 
-  const imageFile = document.getElementById('itemImage')?.files?.[0];
-  if (!imageFile) {
-    alert('Пожалуйста, выберите изображение!');
-    return;
-  }
+      const imageFile = document.getElementById('itemImage')?.files?.[0];
+      if (!imageFile) {
+        alert('Пожалуйста, выберите изображение!');
+        return;
+      }
 
-  formData.append('title', form.elements.title.value.trim());
-  formData.append('description', form.elements.description.value.trim());
-  formData.append('category', form.elements.category.value.trim());
-  formData.append('artikul', form.elements.artikul.value.trim());
-  formData.append('store_name', form.elements.store_name.value.trim());
-  formData.append('store_url', form.elements.store_url.value.trim());
-  formData.append('image', imageFile);
+      const title = form.elements.title.value.trim();
+      const description = form.elements.description.value.trim();
+      const category = form.elements.category.value.trim();
+      const artikul = form.elements.artikul.value.trim();
+      const store_name = form.elements.store_name.value.trim();
+      const store_url = form.elements.store_url.value.trim();
 
-  for (let [key, value] of formData.entries()) {
-    console.log(key, value);
-  }
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('category', category);
+      formData.append('artikul', artikul);
+      formData.append('store_name', store_name);
+      formData.append('store_url', store_url);
+      formData.append('image', imageFile);
 
-  try {
-    const response = await fetch(`${API_URL}/stylist-cloth/`, {
-      method: 'POST',
-      body: formData,
-      // не указываем headers, чтобы browser установил Content-Type сам
-    });
+      if (!title || !description || !category || !artikul || !store_name || !store_url) {
+        alert("Пожалуйста, заполните все поля.");
+        return;
+      }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Ошибка при добавлении одежды:', errorText);
-      throw new Error('Ошибка при добавлении одежды');
-    }
+      try {
+        const response = await fetch(`${API_URL}/stylist-cloth/`, {
+          method: 'POST',
+          body: formData,
+        });
 
-    const newItem = await response.json();
-    this.items.unshift(newItem);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Ошибка при добавлении одежды:', errorText);
+          throw new Error('Ошибка при добавлении одежды');
+        }
 
-    $('#addModal').modal('hide');
-    form.reset();
-    document.getElementById('itemPreview').style.display = 'none';
+        const newItem = await response.json();
+        this.items.unshift(newItem);
 
-    const alert = document.getElementById('editSuccess');
-    alert.textContent = 'Одежда успешно добавлена!';
-    alert.style.display = 'block';
-    setTimeout(() => {
-      alert.style.display = 'none';
-    }, 2000);
-  } catch (error) {
-    console.error('Ошибка при добавлении:', error);
-    alert('Ошибка при добавлении!');
-  }
-},
+        $('#addModal').modal('hide');
+        form.reset();
+        document.getElementById('itemPreview').style.display = 'none';
+
+        const alert = document.getElementById('editSuccess');
+        alert.textContent = 'Одежда успешно добавлена!';
+        alert.style.display = 'block';
+        setTimeout(() => {
+          alert.style.display = 'none';
+        }, 2000);
+      } catch (error) {
+        console.error('Ошибка при добавлении:', error);
+        alert('Ошибка при добавлении!');
+      }
+    },
+    updateSelectedItemsPreview() {
+      const container = document.getElementById('selectedItemsPreview');
+      container.innerHTML = '';
+
+      const selected = this.items.filter(item => this.selectedIds.includes(item.id.toString()));
+
+      selected.forEach(item => {
+        const col = document.createElement('div');
+        col.className = 'col-md-4';
+        col.dataset.id = item.id;
+
+        col.innerHTML = `
+      <div class="card mb-3">
+        <img src="${this.SITE_URL}/app-images/${item.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.title}">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <span class="item-title">${item.title}</span>
+          <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${item.id}">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+        container.appendChild(col);
+      });
+
+      container.querySelectorAll('.remove-selected').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          this.selectedIds = this.selectedIds.filter(selectedId => selectedId !== id);
+
+          const checkbox = document.querySelector(`input.select-checkbox[data-id="${id}"]`);
+          if (checkbox) checkbox.checked = false;
+
+          this.updateSelectedItemsPreview();
+        });
+      });
+    },
+    async confirmCreateOutfit() {
+      const form = document.getElementById('createOutfitForm');
+      const formData = new FormData();
+
+      const image = document.getElementById('outfitImage')?.files?.[0];
+      const title = document.getElementById('outfitTitle').value.trim();
+      const description = document.getElementById('outfitDescription').value.trim();
+      const category = form.elements.category.value;
+      const season = form.elements.season.value;
+
+      if (!image || !title || !category || !season) {
+        alert("Пожалуйста, заполните все поля и выберите изображение.");
+        return;
+      }
+
+      if (this.selectedIds.length < 3) {
+        alert("Необходимо выбрать минимум 3 одежды для создания образа.");
+        return;
+      }
+
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('category', category);
+      formData.append('season', season);
+      formData.append('image', image);
+
+      this.selectedIds.forEach(id => formData.append('clothes[]', id));
+
+      try {
+        const response = await fetch(`${API_URL}/stylist-outfit`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error('Ошибка при создании образа');
+
+        $('#createOutfitModal').modal('hide');
+        this.selectedIds = [];
+        document.getElementById('createOutfitSuccess').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('createOutfitSuccess').style.display = 'none';
+        }, 2000);
+      } catch (error) {
+        console.error('Create outfit error:', error);
+        alert('Ошибка при создании образа');
+      }
+    },
   },
   mounted() {
     this.fetchClothes();
@@ -604,6 +708,39 @@ export default {
             preview.src = e.target.result;
             preview.style.display = 'block';
             addOverlay.removeAttribute('style');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    $('#createOutfitModal').on('show.bs.modal', () => {
+      this.updateSelectedItemsPreview();
+    });
+
+    document.getElementById('confirmCreateOutfit').onclick = () => {
+      this.confirmCreateOutfit();
+    };
+
+    const createOverlay = document.querySelector('#createOutfitModal .upload-overlay');
+    const createFileInput = document.getElementById('outfitImage');
+
+    if (createOverlay && createFileInput) {
+      createOverlay.addEventListener('click', () => {
+        createFileInput.click();
+      });
+    }
+
+    if (createFileInput) {
+      createFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const preview = document.getElementById('outfitPreview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            createOverlay.style.display = 'none';
           };
           reader.readAsDataURL(file);
         }
