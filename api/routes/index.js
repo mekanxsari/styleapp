@@ -26,8 +26,10 @@ router.use('/like', likeRouter);
 //STYLIST DASHBOARD API
 const authStylistRouter = require('./stylist-auth');
 const clothesStylistRouter = require('./StylistClothes');
+const clothStylistRouter = require('./StylistCloth');
 
 router.use('/stylist-auth', authStylistRouter);
 router.use('/stylist-clothes', clothesStylistRouter);
+router.use('/stylist-cloth', clothStylistRouter);
 
 module.exports = router;

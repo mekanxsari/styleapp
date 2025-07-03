@@ -357,6 +357,7 @@ export default {
       page: 1,
       isLoading: false,
       allLoaded: false,
+      itemIdToDelete: null,
     };
   },
   methods: {
@@ -379,6 +380,7 @@ export default {
         this.isLoading = false;
       }
     },
+
     handleScroll() {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
@@ -387,176 +389,60 @@ export default {
         this.fetchClothes();
       }
     },
+
     prepareDelete(id) {
+      this.itemIdToDelete = id;
       $('#deleteModal').modal('show');
     },
-    openEditModal(item) {
-      $('#editModal').modal('show');
+
+    async confirmDelete() {
+      if (!this.itemIdToDelete) return;
+      try {
+        const response = await fetch(`${API_URL}/stylist-clothes/${this.itemIdToDelete}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete');
+        this.items = this.items.filter(item => item.id !== this.itemIdToDelete);
+        $('#deleteModal').modal('hide');
+        this.itemIdToDelete = null;
+        const alert = document.getElementById('deleteSuccess');
+        alert.style.display = 'block';
+        setTimeout(() => {
+          alert.style.display = 'none';
+        }, 2000);
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
+    },
+
+    async openEditModal(item) {
+      try {
+        const response = await fetch(`${API_URL}/stylist-clothes/${item.id}`);
+        if (!response.ok) throw new Error('Failed to fetch item for editing');
+        const data = await response.json();
+
+        const form = document.getElementById('editForm');
+        form.elements.title.value = data.title || '';
+        form.elements.type.value = data.category || '';
+        form.elements.description.value = data.description || '';
+        form.elements.artikul.value = data.artikul || '';
+        form.elements.store_name.value = data.store_name || '';
+        form.elements.store_url.value = data.store_url || '';
+        document.getElementById('editImagePreview').src = SITE_URL + '/app-images/' + data.image_url;
+
+        $('#editModal').modal('show');
+      } catch (error) {
+        console.error('Error loading item for edit:', error);
+      }
     },
   },
   mounted() {
     this.fetchClothes();
     window.addEventListener('scroll', this.handleScroll);
 
-    document.addEventListener('DOMContentLoaded', () => {
-      let rowIdToDelete = null;
-
-      document.addEventListener('click', function (e) {
-        if (e.target.closest('.btn-delete')) {
-          const row = e.target.closest('tr');
-          rowIdToDelete = row.getAttribute('data-id');
-          $('#deleteModal').modal('show');
-        }
-      });
-
-      document.getElementById('confirmDelete').onclick = function () {
-        if (rowIdToDelete) {
-          const row = document.querySelector('tr[data-id="' + rowIdToDelete + '"]');
-          if (row) row.remove();
-          rowIdToDelete = null;
-          $('#deleteModal').modal('hide');
-          const alert = document.getElementById('deleteSuccess');
-          alert.style.display = 'block';
-          setTimeout(() => {
-            alert.style.display = 'none';
-          }, 2000);
-        }
-      };
-
-      document.getElementById('confirmEdit').onclick = function () {
-        $('#editModal').modal('hide');
-        const alert = document.getElementById('editSuccess');
-        alert.style.display = 'block';
-        setTimeout(() => {
-          alert.style.display = 'none';
-        }, 2000);
-      };
-
-      document.getElementById('confirmCreateOutfit').onclick = function () {
-        $('#createOutfitModal').modal('hide');
-        const alert = document.getElementById('createOutfitSuccess');
-        alert.style.display = 'block';
-        setTimeout(() => {
-          alert.style.display = 'none';
-        }, 2000);
-      };
-
-      const itemImageInput = document.getElementById('itemImage');
-      const itemPreview = document.getElementById('itemPreview');
-      const uploadArea = document.getElementById('itemImageUploadArea');
-
-      uploadArea.addEventListener('click', () => {
-        itemImageInput.click();
-      });
-
-      itemImageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          itemPreview.src = e.target.result;
-          itemPreview.style.display = 'block';
-          uploadArea.querySelector('.upload-overlay').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      });
-
-      const editImageInput = document.getElementById('editImageInput');
-      const editImagePreview = document.getElementById('editImagePreview');
-      const editOverlay = editImagePreview.nextElementSibling;
-
-      [editImagePreview, editOverlay].forEach(el => {
-        el.addEventListener('click', () => {
-          editImageInput.click();
-        });
-      });
-
-      editImageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          editImagePreview.src = e.target.result;
-          editImagePreview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      });
-
-      const outfitImageInput = document.getElementById('outfitImage');
-      const outfitPreview = document.getElementById('outfitPreview');
-      const outfitUploadArea = document.getElementById('outfitImageUploadArea');
-
-      outfitUploadArea.addEventListener('click', () => {
-        outfitImageInput.click();
-      });
-
-      outfitImageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          outfitPreview.src = e.target.result;
-          outfitPreview.style.display = 'block';
-          outfitUploadArea.querySelector('.upload-overlay').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      });
-
-      let selectedItems = new Map();
-
-      const createOutfitBtn = document.querySelector('[data-target="#createOutfitModal"]');
-      const selectedItemsPreview = document.getElementById('selectedItemsPreview');
-
-      createOutfitBtn.disabled = true;
-
-      document.addEventListener('change', function (e) {
-        const checkbox = e.target.closest('.select-checkbox');
-        if (!checkbox) return;
-        const row = checkbox.closest('tr');
-        const id = row.getAttribute('data-id');
-        const title = row.querySelector('td:nth-child(4)').innerText;
-        const imageSrc = row.querySelector('td:nth-child(3) img')?.getAttribute('src') || '';
-        if (checkbox.checked) {
-          selectedItems.set(id, { title, imageSrc });
-        } else {
-          selectedItems.delete(id);
-        }
-        createOutfitBtn.disabled = selectedItems.size < 3;
-      });
-
-      $('#createOutfitModal').on('show.bs.modal', () => {
-        selectedItemsPreview.innerHTML = '';
-        selectedItems.forEach(({ title, imageSrc }, id) => {
-          const col = document.createElement('div');
-          col.className = 'col-md-4';
-          col.dataset.id = id;
-          col.innerHTML = `
-            <div class="card mb-3">
-              <img src="${imageSrc}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${title}">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <span class="item-title">${title}</span>
-                <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${id}">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-          `;
-          selectedItemsPreview.appendChild(col);
-        });
-      });
-
-      selectedItemsPreview.addEventListener('click', (e) => {
-        const removeBtn = e.target.closest('.remove-selected');
-        if (!removeBtn) return;
-        const id = removeBtn.dataset.id;
-        selectedItems.delete(id);
-        const checkbox = document.querySelector(`.select-checkbox[data-id="${id}"]`);
-        if (checkbox) checkbox.checked = false;
-        const previewCard = selectedItemsPreview.querySelector(`div[data-id="${id}"]`);
-        if (previewCard) previewCard.remove();
-        createOutfitBtn.disabled = selectedItems.size < 3;
-      });
-    });
+    document.getElementById('confirmDelete').onclick = () => {
+      this.confirmDelete();
+    };
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.handleScroll);
