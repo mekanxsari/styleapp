@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
-
 router.get('/', async (req, res) => {
   const page = parseInt(req.query.page || '1');
   const limit = 20;
@@ -15,6 +14,7 @@ router.get('/', async (req, res) => {
       FROM clothes
     `;
     const values = [];
+    let paramIndex = 1;
 
     if (q && field) {
       const allowedFields = ['id', 'title', 'category', 'artikul', 'store_name'];
@@ -23,15 +23,17 @@ router.get('/', async (req, res) => {
       }
 
       if (field === 'id') {
-        query += ' WHERE id = $1';
+        query += ` WHERE id = $${paramIndex}`;
         values.push(parseInt(q));
+        paramIndex++;
       } else {
-        query += ` WHERE ${field} ILIKE $1`;
+        query += ` WHERE ${field} ILIKE $${paramIndex}`;
         values.push(`%${q}%`);
+        paramIndex++;
       }
     }
 
-    query += ' ORDER BY id LIMIT $2 OFFSET $3';
+    query += ` ORDER BY id LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     values.push(limit, offset);
 
     const result = await pool.query(query, values);
