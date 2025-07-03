@@ -68,7 +68,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-
 router.put('/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const {
@@ -115,5 +114,38 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+router.post('/', upload.single('image'), async (req, res) => {
+  const {
+    title,
+    description,
+    category,
+    artikul,
+    store_name,
+    store_url
+  } = req.body;
+
+  try {
+    let image_url = null;
+
+    if (req.file) {
+      image_url = req.file.filename;
+    } else {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO clothes (image_url, title, description, category, artikul, store_name, store_url)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [image_url, title, description, category, artikul, store_name, store_url]);
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error creating clothing:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 module.exports = router;

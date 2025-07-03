@@ -55,7 +55,8 @@
                 </td>
                 <td>{{ item.id }}</td>
                 <td>
-                  <img :src="SITE_URL + '/app-images/' + item.image_url" :alt="item.title" style="width: 150px; height: 150px;" />
+                  <img :src="SITE_URL + '/app-images/' + item.image_url" :alt="item.title"
+                    style="width: 150px; height: 150px;" />
                 </td>
                 <td>{{ item.title }}</td>
                 <td>{{ item.category }}</td>
@@ -136,11 +137,11 @@
                   <label>Тип одежды</label>
                   <select class="form-control" name="type" required>
                     <option value="">Выберите тип</option>
-                    <option value="top">Верх</option>
-                    <option value="bottom">Низ</option>
-                    <option value="outerwear">Верхняя одежда</option>
-                    <option value="shoes">Обувь</option>
-                    <option value="accessories">Аксессуары</option>
+                    <option value="Верх">Верх</option>
+                    <option value="Низ">Низ</option>
+                    <option value="Верхняя одежда">Верхняя одежда</option>
+                    <option value="Обувь">Обувь</option>
+                    <option value="Аксессуар">Аксессуар</option>
                   </select>
                 </div>
                 <div class="form-group col-md-12 mb-2">
@@ -185,8 +186,8 @@
               <div class="form-group">
                 <label>Изображение</label>
                 <div class="image-upload-container mb-3">
-                  <img src="" id="editImagePreview" class="img-fluid"
-                    alt="Текущее изображение" style="max-height: 300px; width: auto; display: block; margin: 0 auto;" />
+                  <img src="" id="editImagePreview" class="img-fluid" alt="Текущее изображение"
+                    style="max-height: 300px; width: auto; display: block; margin: 0 auto;" />
                   <div class="upload-overlay">
                     <div class="text-center text-white">
                       <i class="fas fa-camera fa-2x mb-2"></i>
@@ -206,12 +207,13 @@
                   <label>Тип одежды</label>
                   <select class="form-control" name="type" required>
                     <option value="">Выберите тип</option>
-                    <option value="top">Верх</option>
-                    <option value="bottom">Низ</option>
-                    <option value="outerwear">Верхняя одежда</option>
-                    <option value="shoes">Обувь</option>
-                    <option value="accessories">Аксессуары</option>
+                    <option value="Верх">Верх</option>
+                    <option value="Низ">Низ</option>
+                    <option value="Верхняя одежда">Верхняя одежда</option>
+                    <option value="Обувь">Обувь</option>
+                    <option value="Аксессуар">Аксессуар</option>
                   </select>
+
                 </div>
               </div>
 
@@ -282,11 +284,11 @@
                   <label>Категория</label>
                   <select class="form-control" name="category" required>
                     <option value="">Выберите категорию</option>
-                    <option value="romantic">Романтический</option>
-                    <option value="sportive">Спортивный</option>
-                    <option value="elegant">Элегантный</option>
-                    <option value="beach">Пляж</option>
-                    <option value="casual">Кэжуал</option>
+                    <option value="Романтический">Романтический</option>
+                    <option value="Спортивный">Спортивный</option>
+                    <option value="Элегантный">Элегантный</option>
+                    <option value="Пляж">Пляж</option>
+                    <option value="Кэжуал">Кэжуал</option>
                   </select>
                 </div>
 
@@ -294,10 +296,10 @@
                   <label>Сезон</label>
                   <select class="form-control" name="season" required>
                     <option value="">Выберите сезон</option>
-                    <option value="winter">Зима</option>
-                    <option value="spring">Весна</option>
-                    <option value="summer">Лето</option>
-                    <option value="autumn">Осень</option>
+                    <option value="Зима">Зима</option>
+                    <option value="Весна">Весна</option>
+                    <option value="Лето">Лето</option>
+                    <option value="Осень">Осень</option>
                   </select>
                 </div>
 
@@ -424,14 +426,7 @@ export default {
 
         const form = document.getElementById('editForm');
         form.elements.title.value = data.title || '';
-        const categoryMap = {
-          'Верх': 'top',
-          'Низ': 'bottom',
-          'Верхняя одежда': 'outerwear',
-          'Обувь': 'shoes',
-          'Аксессуар': 'accessories'
-        };
-        form.elements.type.value = categoryMap[data.category] || data.category || '';
+        form.elements.type.value = data.category || '';
         form.elements.description.value = data.description || '';
         form.elements.artikul.value = data.artikul || '';
         form.elements.store_name.value = data.store_name || '';
@@ -445,47 +440,58 @@ export default {
     },
 
     async confirmEdit() {
-  const form = document.getElementById('editForm');
-  const formData = new FormData();
+      const form = document.getElementById('editForm');
+      const formData = new FormData();
 
-  const id = this.itemIdToEdit;
-  if (!id) return;
+      const id = this.itemIdToEdit;
+      if (!id) return;
 
-  formData.append('title', form.elements.title.value);
-  formData.append('description', form.elements.description.value);
-  formData.append('category', form.elements.type.value);
-  formData.append('artikul', form.elements.artikul.value);
-  formData.append('store_name', form.elements.store_name.value);
-  formData.append('store_url', form.elements.store_url.value);
+      formData.append('title', form.elements.title.value);
+      formData.append('description', form.elements.description.value);
+      formData.append('category', form.elements.type.value);
+      formData.append('artikul', form.elements.artikul.value);
+      formData.append('store_name', form.elements.store_name.value);
+      formData.append('store_url', form.elements.store_url.value);
 
-  const imageFile = document.getElementById('editImageInput')?.files?.[0];
-  if (imageFile) {
-    formData.append('image', imageFile);
-  }
+      const imageFile = document.getElementById('editImageInput')?.files?.[0];
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
 
-  try {
-    const response = await fetch(`${API_URL}/stylist-cloth/${id}`, {
-      method: 'PUT',
-      body: formData,
-    });
+      try {
+        console.log('Sending PUT request to update item with id:', id);
 
-    if (!response.ok) throw new Error('Failed to save changes');
+        const response = await fetch(`${API_URL}/stylist-cloth/${id}`, {
+          method: 'PUT',
+          body: formData,
+        });
 
-    const updated = await response.json();
-    const index = this.items.findIndex(item => item.id === id);
-    if (index !== -1) this.$set(this.items, index, updated);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
 
-    $('#editModal').modal('hide');
-    const alert = document.getElementById('editSuccess');
-    alert.style.display = 'block';
-    setTimeout(() => {
-      alert.style.display = 'none';
-    }, 2000);
-  } catch (error) {
-    console.error('Error saving item:', error);
-    alert('Ошибка при сохранении!');
-  }
-},
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Response error text:', errorText);
+          throw new Error('Failed to save changes');
+        }
+
+        const updated = await response.json();
+        console.log('Updated item received from server:', updated);
+
+        const index = this.items.findIndex(item => item.id === id);
+        if (index !== -1) this.items.splice(index, 1, updated);
+
+        $('#editModal').modal('hide');
+        const alert = document.getElementById('editSuccess');
+        alert.style.display = 'block';
+        setTimeout(() => {
+          alert.style.display = 'none';
+        }, 2000);
+      } catch (error) {
+        console.error('Error saving item:', error);
+        alert('Ошибка при сохранении!');
+      }
+    },
   },
   mounted() {
     this.fetchClothes();
@@ -495,10 +501,31 @@ export default {
       this.confirmDelete();
     };
 
-    // Hook confirmEdit button to method
     document.getElementById('confirmEdit').onclick = () => {
       this.confirmEdit();
     };
+
+    const overlay = document.querySelector('#editModal .upload-overlay');
+    const fileInput = document.getElementById('editImageInput');
+
+    if (overlay && fileInput) {
+      overlay.addEventListener('click', () => {
+        fileInput.click();
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            document.getElementById('editImagePreview').src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.handleScroll);
