@@ -1,7 +1,9 @@
 CREATE TABLE admin (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    session_token TEXT,
+    session_expires_at TIMESTAMP
 );
 
 CREATE TABLE users (

@@ -50,15 +50,24 @@ router.get('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
+
   try {
+    const existing = await pool.query(`SELECT image_url FROM clothes WHERE id = $1`, [id]);
+    if (existing.rowCount === 0) {
+      return res.status(404).json({ message: "Clothing item not found" });
+    }
+
+    const imageFile = existing.rows[0].image_url;
+    const imagePath = path.join(uploadDir, imageFile);
+
     const result = await pool.query(`
       DELETE FROM clothes
       WHERE id = $1
       RETURNING *
     `, [id]);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "Clothing item not found" });
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
     }
 
     res.json({ message: "Clothing item deleted", item: result.rows[0] });
@@ -67,6 +76,7 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 router.put('/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
@@ -146,6 +156,5 @@ router.post('/', upload.single('image'), async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 module.exports = router;

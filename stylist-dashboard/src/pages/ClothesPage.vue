@@ -106,7 +106,7 @@
     <div class="modal fade align-items-center" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
       aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered align-items-center" role="document">
-        <form id="addForm">
+        <form id="addForm" enctype="multipart/form-data">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="addModalLabel">Добавить одежда</h5>
@@ -119,14 +119,14 @@
                 <label>Изображение</label>
                 <div class="image-upload-container" id="itemImageUploadArea">
                   <img id="itemPreview" src="" alt="Изображение" style="display: none;" />
-                  <div class="upload-overlay" style="opacity: 1;">
+                  <div class="upload-overlay" id="add-img-overlay" style="opacity: 1;">
                     <div class="text-center">
                       <i class="fas fa-camera fa-2x mb-2"></i>
                       <p>Нажмите для загрузки изображения</p>
                     </div>
                   </div>
                 </div>
-                <input type="file" id="itemImage" accept="image/*" style="display: none;" />
+                <input type="file" id="itemImage" name="image" accept="image/*" style="display: none;" />
               </div>
               <div class="form-row mb-2">
                 <div class="form-group col-md-6 mb-2">
@@ -135,7 +135,7 @@
                 </div>
                 <div class="form-group col-md-6 mb-2">
                   <label>Тип одежды</label>
-                  <select class="form-control" name="type" required>
+                  <select class="form-control" name="category" required>
                     <option value="">Выберите тип</option>
                     <option value="Верх">Верх</option>
                     <option value="Низ">Низ</option>
@@ -164,7 +164,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="submit" class="btn btn-primary" @click="openEditModal(item)">Добавить</button>
+              <button type="button" class="btn btn-primary" id="confirmAdd">Добавить</button>
             </div>
           </div>
         </form>
@@ -205,7 +205,7 @@
                 </div>
                 <div class="form-group col-md-6">
                   <label>Тип одежды</label>
-                  <select class="form-control" name="type" required>
+                  <select class="form-control" name="category" required>
                     <option value="">Выберите тип</option>
                     <option value="Верх">Верх</option>
                     <option value="Низ">Низ</option>
@@ -426,7 +426,7 @@ export default {
 
         const form = document.getElementById('editForm');
         form.elements.title.value = data.title || '';
-        form.elements.type.value = data.category || '';
+        form.elements.category.value = data.category || '';
         form.elements.description.value = data.description || '';
         form.elements.artikul.value = data.artikul || '';
         form.elements.store_name.value = data.store_name || '';
@@ -448,7 +448,7 @@ export default {
 
       formData.append('title', form.elements.title.value);
       formData.append('description', form.elements.description.value);
-      formData.append('category', form.elements.type.value);
+      formData.append('category', form.elements.category.value);
       formData.append('artikul', form.elements.artikul.value);
       formData.append('store_name', form.elements.store_name.value);
       formData.append('store_url', form.elements.store_url.value);
@@ -492,6 +492,60 @@ export default {
         alert('Ошибка при сохранении!');
       }
     },
+
+    async confirmAdd() {
+  const form = document.getElementById('addForm');
+  const formData = new FormData();
+
+  const imageFile = document.getElementById('itemImage')?.files?.[0];
+  if (!imageFile) {
+    alert('Пожалуйста, выберите изображение!');
+    return;
+  }
+
+  formData.append('title', form.elements.title.value.trim());
+  formData.append('description', form.elements.description.value.trim());
+  formData.append('category', form.elements.category.value.trim());
+  formData.append('artikul', form.elements.artikul.value.trim());
+  formData.append('store_name', form.elements.store_name.value.trim());
+  formData.append('store_url', form.elements.store_url.value.trim());
+  formData.append('image', imageFile);
+
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/stylist-cloth/`, {
+      method: 'POST',
+      body: formData,
+      // не указываем headers, чтобы browser установил Content-Type сам
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Ошибка при добавлении одежды:', errorText);
+      throw new Error('Ошибка при добавлении одежды');
+    }
+
+    const newItem = await response.json();
+    this.items.unshift(newItem);
+
+    $('#addModal').modal('hide');
+    form.reset();
+    document.getElementById('itemPreview').style.display = 'none';
+
+    const alert = document.getElementById('editSuccess');
+    alert.textContent = 'Одежда успешно добавлена!';
+    alert.style.display = 'block';
+    setTimeout(() => {
+      alert.style.display = 'none';
+    }, 2000);
+  } catch (error) {
+    console.error('Ошибка при добавлении:', error);
+    alert('Ошибка при добавлении!');
+  }
+},
   },
   mounted() {
     this.fetchClothes();
@@ -526,6 +580,36 @@ export default {
         }
       });
     }
+
+    document.getElementById('confirmAdd').onclick = () => {
+      this.confirmAdd();
+    };
+
+    const addOverlay = document.querySelector('#addModal .upload-overlay');
+    const addFileInput = document.getElementById('itemImage');
+
+    if (addOverlay && addFileInput) {
+      addOverlay.addEventListener('click', () => {
+        addFileInput.click();
+      });
+    }
+
+    if (addFileInput) {
+      addFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const preview = document.getElementById('itemPreview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            addOverlay.removeAttribute('style');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.handleScroll);
