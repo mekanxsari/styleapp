@@ -5,8 +5,7 @@ export default defineConfig({
   plugins: [vue()],
   base: '/stylist/',
   build: {
-    out,
-    Dir: '../stylist'
+    outDir: '../stylist'
   },
   server: {
     host: true,
