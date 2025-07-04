@@ -453,63 +453,67 @@ export default {
         });
 
         const capsuleImageInput = document.getElementById('capsuleImage');
-  const capsulePreview = document.getElementById('capsulePreview');
+        const capsulePreview = document.getElementById('capsulePreview');
 
-  document.getElementById('capsuleImageUploadArea').addEventListener('click', () => {
-    capsuleImageInput.click();
-  });
+        document.getElementById('capsuleImageUploadArea').addEventListener('click', () => {
+            capsuleImageInput.click();
+        });
 
-  capsuleImageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      capsulePreview.src = URL.createObjectURL(file);
-      capsulePreview.style.display = 'block';
-    }
-  });
+        capsuleImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                capsulePreview.src = URL.createObjectURL(file);
+                capsulePreview.style.display = 'block';
+                const uploadOverlay = document.querySelector('#capsuleImageUploadArea .upload-overlay');
+                if (uploadOverlay) {
+                    uploadOverlay.remove();
+                }
+            }
+        });
 
-  document.getElementById('submitCapsule').addEventListener('click', async () => {
-  const selected = this.getSelectedOutfits();
+        document.getElementById('submitCapsule').addEventListener('click', async () => {
+            const selected = this.getSelectedOutfits();
 
-  if (selected.length < 3) {
-    alert("Выберите минимум 3 образа для создания капсулы.");
-    return;
-  }
+            if (selected.length < 3) {
+                alert("Выберите минимум 3 образа для создания капсулы.");
+                return;
+            }
 
-  const title = document.getElementById('capsuleTitle').value;
-  const season1 = document.getElementById('outfitSeason1').value;
-  const season2 = document.getElementById('outfitSeason2').value;
-  const description = document.getElementById('capsuleDescription').value;
-  const imageInput = document.getElementById('capsuleImage');
-  const imageFile = imageInput.files[0];
+            const title = document.getElementById('capsuleTitle').value;
+            const season1 = document.getElementById('outfitSeason1').value;
+            const season2 = document.getElementById('outfitSeason2').value;
+            const description = document.getElementById('capsuleDescription').value;
+            const imageInput = document.getElementById('capsuleImage');
+            const imageFile = imageInput.files[0];
 
-  const selectedIds = selected.map(card => card.getAttribute('data-id'));
+            const selectedIds = selected.map(card => card.getAttribute('data-id'));
 
-  const formData = new FormData();
-  formData.append('title', title);
-  formData.append('season1', season1);
-formData.append('season2', season2 || '');
-formData.append('description', description || '');
-  selectedIds.forEach(id => formData.append('outfit_ids[]', id));
-  if (imageFile) formData.append('image', imageFile);
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('season1', season1);
+            formData.append('season2', season2 || '');
+            formData.append('description', description || '');
+            selectedIds.forEach(id => formData.append('outfit_ids[]', id));
+            if (imageFile) formData.append('image', imageFile);
 
-  try {
-    const response = await fetch(`${API_URL}/stylist-capsule`, {
-      method: 'POST',
-      body: formData,
-    });
+            try {
+                const response = await fetch(`${API_URL}/stylist-capsule`, {
+                    method: 'POST',
+                    body: formData,
+                });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(errText);
-    }
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(errText);
+                }
 
-    $('#createCapsuleModal').modal('hide');
-    this.showSuccess('createCapsuleSuccess');
-  } catch (err) {
-    console.error("Ошибка при создании капсулы:", err);
-    alert("Не удалось создать капсулу.");
-  }
-});
+                $('#createCapsuleModal').modal('hide');
+                this.showSuccess('createCapsuleSuccess');
+            } catch (err) {
+                console.error("Ошибка при создании капсулы:", err);
+                alert("Не удалось создать капсулу.");
+            }
+        });
 
     },
     methods: {

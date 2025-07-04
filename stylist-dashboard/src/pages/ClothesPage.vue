@@ -285,7 +285,7 @@
 
                 <div class="form-group col-md-6">
                   <label>Категория</label>
-                  <select class="form-control" name="category" required>
+                  <select class="form-control" name="category" id="outfitCategory" required>
                     <option value="">Выберите категорию</option>
                     <option value="Романтический">Романтический</option>
                     <option value="Повседневный">Повседневный</option>

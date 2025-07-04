@@ -30,6 +30,7 @@ const clothStylistRouter = require('./StylistCloth');
 const outfitStylistRouter = require('./StylistOutfit');
 const outfitsStylistRouter = require('./StylistOutfits');
 const capsuleStylistRouter = require('./StylistCapsule');
+const capsulasStylistRouter = require('./StylistCapsulas');
 
 router.use('/stylist-auth', authStylistRouter);
 router.use('/stylist-clothes', clothesStylistRouter);
@@ -37,5 +38,6 @@ router.use('/stylist-cloth', clothStylistRouter);
 router.use('/stylist-outfit', outfitStylistRouter);
 router.use('/stylist-outfits', outfitsStylistRouter);
 router.use('/stylist-capsule', capsuleStylistRouter);
+router.use('/stylist-capsulas', capsulasRouter);
 
 module.exports = router;
