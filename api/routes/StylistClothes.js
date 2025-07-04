@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+
 router.get('/', async (req, res) => {
   const page = parseInt(req.query.page || '1');
   const limit = 20;
@@ -16,20 +17,29 @@ router.get('/', async (req, res) => {
     const values = [];
     let paramIndex = 1;
 
-    if (q && field) {
-      const allowedFields = ['id', 'title', 'category', 'artikul', 'store_name'];
-      if (!allowedFields.includes(field)) {
-        return res.status(400).json({ message: 'Invalid search field' });
-      }
+    const allowedFields = ['id', 'title', 'category', 'artikul', 'store_name'];
 
-      if (field === 'id') {
-        query += ` WHERE id = $${paramIndex}`;
-        values.push(parseInt(q));
+    if (q) {
+      if (field) {
+        if (!allowedFields.includes(field)) {
+          return res.status(400).json({ message: 'Invalid search field' });
+        }
+
+        if (field === 'id') {
+          query += ` WHERE id = $${paramIndex}`;
+          values.push(parseInt(q));
+        } else {
+          query += ` WHERE ${field} ILIKE $${paramIndex}`;
+          values.push(`%${q}%`);
+        }
         paramIndex++;
       } else {
-        query += ` WHERE ${field} ILIKE $${paramIndex}`;
-        values.push(`%${q}%`);
-        paramIndex++;
+        const searchableFields = ['title', 'category', 'artikul', 'store_name'];
+        const conditions = searchableFields.map(field => `${field} ILIKE $${paramIndex++}`);
+        query += ` WHERE ` + conditions.join(' OR ');
+        for (let i = 0; i < searchableFields.length; i++) {
+          values.push(`%${q}%`);
+        }
       }
     }
 
