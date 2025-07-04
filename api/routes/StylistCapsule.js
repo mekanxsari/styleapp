@@ -55,7 +55,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await pool.query(
       `
-      INSERT INTO capsulas (image_url, title, description, season1, season2)
+      INSERT INTO capsulas (image_url, title, description, season_1, season_2)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id
       `,

@@ -477,7 +477,7 @@ export default {
 
   const title = document.getElementById('capsuleTitle').value;
   const season1 = document.getElementById('outfitSeason1').value;
-  const season2 = document.getElementById('outfitSeason1"]').value;
+  const season2 = document.getElementById('outfitSeason2').value;
   const description = document.getElementById('capsuleDescription').value;
   const imageInput = document.getElementById('capsuleImage');
   const imageFile = imageInput.files[0];
