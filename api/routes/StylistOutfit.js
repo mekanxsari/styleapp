@@ -64,7 +64,6 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.get('/:id', async (req, res) => {
   const outfitId = req.params.id;
   try {
-    // Get outfit details
     const outfitResult = await pool.query(
       'SELECT * FROM outfits WHERE id = $1',
       [outfitId]
@@ -125,5 +124,55 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+router.put('/:id', upload.single('image'), async (req, res) => {
+  const outfitId = req.params.id;
+  const { title, description, category, season } = req.body;
+
+  try {
+    if (!title || !season || !category) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const outfitResult = await pool.query(
+      'SELECT image_url FROM outfits WHERE id = $1',
+      [outfitId]
+    );
+
+    if (outfitResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Outfit not found' });
+    }
+
+    const oldImageUrl = outfitResult.rows[0].image_url;
+    let newImageUrl = oldImageUrl;
+
+    if (req.file) {
+      newImageUrl = req.file.filename;
+      const oldFilePath = path.join(uploadDir, oldImageUrl);
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    await pool.query(
+      `
+      UPDATE outfits
+      SET image_url = $1,
+          title = $2,
+          description = $3,
+          season = $4,
+          label = $5
+      WHERE id = $6
+      `,
+      [newImageUrl, title, description, season, category, outfitId]
+    );
+
+    res.json({ message: 'Outfit updated successfully', outfit_id: outfitId });
+  } catch (error) {
+    console.error('Error updating outfit:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;

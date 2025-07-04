@@ -285,14 +285,18 @@
 
                 <div class="form-group col-md-6">
                   <label>Категория</label>
-                  <select class="form-control" name="category" id="outfitCategory" required>
+                  <select class="form-control" name="category" required>
                     <option value="">Выберите категорию</option>
                     <option value="Романтический">Романтический</option>
+                    <option value="Повседневный">Повседневный</option>
+                    <option value="Кэжуал">Кэжуал</option>
                     <option value="Спортивный">Спортивный</option>
                     <option value="Элегантный">Элегантный</option>
                     <option value="Пляж">Пляж</option>
-                    <option value="Кэжуал">Кэжуал</option>
+                    <option value="Коктейльный">Коктейльный</option>
+                    <option value="Минималистичный">Минималистичный</option>
                   </select>
+
                 </div>
 
                 <div class="form-group col-md-6">
@@ -369,48 +373,48 @@ export default {
   },
   methods: {
     async fetchClothes(reset = false) {
-  if (this.isLoading || this.allLoaded) return;
+      if (this.isLoading || this.allLoaded) return;
 
-  if (reset) {
-    this.items = [];
-    this.page = 1;
-    this.allLoaded = false;
-  }
-
-  this.isLoading = true;
-  try {
-    const params = new URLSearchParams({
-      page: this.page.toString(),
-    });
-
-    if (this.searchText) {
-      params.append('q', this.searchText);
-      if (this.searchField) {
-        params.append('field', this.searchField);
-      }
-    }
-
-    const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch clothes');
-
-    const data = await response.json();
-
-    if (data.length === 0) {
-      this.allLoaded = true;
-    } else {
       if (reset) {
-        this.items = data;
-      } else {
-        this.items.push(...data);
+        this.items = [];
+        this.page = 1;
+        this.allLoaded = false;
       }
-      this.page += 1;
-    }
-  } catch (error) {
-    console.error('Error fetching clothes:', error);
-  } finally {
-    this.isLoading = false;
-  }
-},
+
+      this.isLoading = true;
+      try {
+        const params = new URLSearchParams({
+          page: this.page.toString(),
+        });
+
+        if (this.searchText) {
+          params.append('q', this.searchText);
+          if (this.searchField) {
+            params.append('field', this.searchField);
+          }
+        }
+
+        const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to fetch clothes');
+
+        const data = await response.json();
+
+        if (data.length === 0) {
+          this.allLoaded = true;
+        } else {
+          if (reset) {
+            this.items = data;
+          } else {
+            this.items.push(...data);
+          }
+          this.page += 1;
+        }
+      } catch (error) {
+        console.error('Error fetching clothes:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
 
     handleScroll() {
       const scrollY = window.scrollY;
