@@ -38,6 +38,6 @@ router.use('/stylist-cloth', clothStylistRouter);
 router.use('/stylist-outfit', outfitStylistRouter);
 router.use('/stylist-outfits', outfitsStylistRouter);
 router.use('/stylist-capsule', capsuleStylistRouter);
-router.use('/stylist-capsulas', capsulasRouter);
+router.use('/stylist-capsulas', capsulasStylistRouter);
 
 module.exports = router;
