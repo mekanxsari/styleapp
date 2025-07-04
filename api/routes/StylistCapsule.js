@@ -28,7 +28,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       return res.status(400).json({ message: 'Image is required' });
     }
 
-    if (!title || !season1 || !season2 || !outfitIds) {
+    if (!title || !season1 || !outfitIds) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
