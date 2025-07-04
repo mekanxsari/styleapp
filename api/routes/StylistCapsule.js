@@ -55,7 +55,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await pool.query(
       `
-      INSERT INTO capsules (image_url, title, description, season1, season2)
+      INSERT INTO capsulas (image_url, title, description, season1, season2)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id
       `,
@@ -71,7 +71,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     console.log('Insert outfit linkage params:', insertParams);
 
     await pool.query(
-      `INSERT INTO capsules_outfits (capsule_id, outfit_id) VALUES ${insertValues}`,
+      `INSERT INTO capsulas_superset (capsulas_id, outfit_id) VALUES ${insertValues}`,
       insertParams
     );
 
