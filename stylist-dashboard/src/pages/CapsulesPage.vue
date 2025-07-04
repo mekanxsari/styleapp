@@ -180,122 +180,50 @@
     </div>
   </div>
 </template>
-
 <script>
+import { API_URL, SITE_URL } from '../api'
+
 export default {
   data() {
     return {
-      capsules: [
-        {
-          id: 1,
-          title: "На отдых",
-          image: "https://mekanxsari.ru/app-images/51.jpg",
-          seasons: ["Summer", "Winter"],
-          description: "Капсула для отдыха",
-          outfits: [
-            {
-              id: 1,
-              title: "Пляжный образ",
-              image: "https://mekanxsari.ru/app-images/48.jpg",
-              seasons: ["Summer"],
-              description: "Легкий пляжный образ"
-            },
-            {
-              id: 2,
-              title: "Вечерний образ",
-              image: "https://mekanxsari.ru/app-images/49.jpg",
-              seasons: ["Summer", "Winter"],
-              description: "Элегантный вечерний наряд"
-            }
-          ]
-        },
-        {
-          id: 2,
-          title: "Office siren",
-          image: "https://mekanxsari.ru/app-images/57.jpg",
-          seasons: ["Summer", "Winter"],
-          description: "Офисный стиль",
-          outfits: [
-            {
-              id: 3,
-              title: "Деловой костюм",
-              image: "https://mekanxsari.ru/app-images/50.jpg",
-              seasons: ["Summer", "Winter"],
-              description: "Классический деловой образ"
-            },
-            {
-              id: 4,
-              title: "Повседневный офис",
-              image: "https://mekanxsari.ru/app-images/51.jpg",
-              seasons: ["Summer"],
-              description: "Неформальный офисный стиль"
-            }
-          ]
-        },
-        {
-          id: 3,
-          title: "На зиму",
-          image: "https://mekanxsari.ru/app-images/63.jpg",
-          seasons: ["Winter"],
-          description: "Зимняя капсула",
-          outfits: [
-            {
-              id: 5,
-              title: "Теплый комплект",
-              image: "https://mekanxsari.ru/app-images/52.jpg",
-              seasons: ["Winter"],
-              description: "Теплая зимняя одежда"
-            }
-          ]
-        },
-        {
-          id: 4,
-          title: "Спортивный",
-          image: "https://mekanxsari.ru/app-images/69.jpg",
-          seasons: ["Summer", "Spring"],
-          description: "Спортивная одежда",
-          outfits: [
-            {
-              id: 6,
-              title: "Тренировочный комплект",
-              image: "https://mekanxsari.ru/app-images/53.jpg",
-              seasons: ["Summer", "Spring"],
-              description: "Для занятий спортом"
-            },
-            {
-              id: 7,
-              title: "Прогулочный комплект",
-              image: "https://mekanxsari.ru/app-images/54.jpg",
-              seasons: ["Spring"],
-              description: "Для активного отдыха"
-            }
-          ]
-        }
-      ],
+      SITE_URL,
+      capsules: [],
       selectedCapsule: {
         id: null,
         title: '',
         image: '',
         seasons: ['', ''],
-        description: '',
-        outfits: []
+        description: ''
       },
-      currentDeleteType: null, // 'capsule' or 'outfit'
+      currentDeleteType: null,
       currentDeleteId: null
     }
   },
+  mounted() {
+    this.fetchCapsules();
+  },
   methods: {
+    async fetchCapsules() {
+      try {
+        const response = await fetch(`${API_URL}/stylist-capsulas`);
+        const data = await response.json();
+        this.capsules = data.map(c => ({
+          id: c.id,
+          title: c.title,
+          image: `${SITE_URL}/app-images/${c.image_url}`,
+          seasons: [c.season_1, c.season_2].filter(Boolean),
+          description: c.description
+        }));
+      } catch (error) {
+        console.error('Ошибка при загрузке капсул:', error);
+      }
+    },
     openEditModal(capsule) {
       this.selectedCapsule = JSON.parse(JSON.stringify(capsule));
       $('#editCapsuleModal').modal('show');
     },
     confirmDelete(id) {
       this.currentDeleteType = 'capsule';
-      this.currentDeleteId = id;
-      $('#deleteModal').modal('show');
-    },
-    confirmOutfitDelete(id) {
-      this.currentDeleteType = 'outfit';
       this.currentDeleteId = id;
       $('#deleteModal').modal('show');
     },
@@ -307,19 +235,12 @@ export default {
         setTimeout(() => {
           $('#deleteSuccessAlert').fadeOut();
         }, 3000);
-      } else if (this.currentDeleteType === 'outfit') {
-        this.selectedCapsule.outfits = this.selectedCapsule.outfits.filter(o => o.id !== this.currentDeleteId);
-        $('#deleteModal').modal('hide');
-        $('#deleteOutfitSuccessAlert').fadeIn();
-        setTimeout(() => {
-          $('#deleteOutfitSuccessAlert').fadeOut();
-        }, 3000);
       }
     },
     saveChanges() {
       const index = this.capsules.findIndex(c => c.id === this.selectedCapsule.id);
       if (index >= 0) {
-        this.capsules.splice(index, 1, {...this.selectedCapsule});
+        this.capsules.splice(index, 1, { ...this.selectedCapsule });
       }
       $('#editCapsuleModal').modal('hide');
       $('#saveSuccessAlert').fadeIn();
@@ -330,7 +251,7 @@ export default {
     handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       const reader = new FileReader();
       reader.onload = (event) => {
         this.selectedCapsule.image = event.target.result;

@@ -60,5 +60,42 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const capsuleResult = await pool.query(
+      `
+      SELECT id, image_url, title, description, season_1, season_2
+      FROM capsulas
+      WHERE id = $1
+      `,
+      [id]
+    );
+
+    if (capsuleResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Capsule not found' });
+    }
+
+    const capsule = capsuleResult.rows[0];
+
+    const outfitsResult = await pool.query(
+      `
+      SELECT o.id, o.image_url, o.title, o.season, o.label
+      FROM outfits o
+      JOIN capsulas_superset cs ON cs.outfit_id = o.id
+      WHERE cs.capsulas_id = $1
+      `,
+      [id]
+    );
+
+    capsule.outfits = outfitsResult.rows;
+
+    res.json(capsule);
+  } catch (error) {
+    console.error('Error fetching capsule:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;
