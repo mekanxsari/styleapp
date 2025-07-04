@@ -6,7 +6,7 @@ router.get('/', async (req, res) => {
   try {
     const query = `
       SELECT id, image_url, title, season_1, season_2, description
-      FROM capsules
+      FROM capsulas
       ORDER BY id
     `;
     const result = await pool.query(query);
