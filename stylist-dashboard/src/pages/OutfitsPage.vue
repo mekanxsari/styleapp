@@ -62,7 +62,7 @@
         </div> <!-- Closing container-fluid div -->
 
         <!-- DELETE ITEM MODAL -->
-        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal fade" id="confirmDeleteClothingModal" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered delete-confirm-modal" role="document">
                 <div class="modal-content">
                     <div class="modal-header border-0">
@@ -76,7 +76,29 @@
                         <p>Это действие нельзя отменить. Все данные будут удалены безвозвратно.</p>
                         <div class="delete-confirm-buttons mt-4">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                            <button type="button" class="btn btn-danger" id="confirmDelete">Удалить</button>
+                            <button type="button" class="btn btn-danger" id="confirmClothingDeleteBtn">Удалить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DELETE OUTFIT MODAL -->
+        <div class="modal fade" id="confirmDeleteOutfitModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered delete-confirm-modal" role="document">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h4>Вы уверены, что хотите удалить?</h4>
+                        <p>Это действие нельзя отменить. Все данные будут удалены безвозвратно.</p>
+                        <div class="delete-confirm-buttons mt-4">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                            <button type="button" class="btn btn-danger" id="confirmOutfitDeleteBtn">Удалить</button>
                         </div>
                     </div>
                 </div>
@@ -229,23 +251,23 @@
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label>Сезон 1</label>
-                                    <select class="form-control" name="season" required>
+                                    <select class="form-control" name="season1" id="outfitSeason" required>
                                         <option value="">Выберите сезон</option>
-                                        <option value="winter">Зима</option>
-                                        <option value="spring">Весна</option>
-                                        <option value="summer">Лето</option>
-                                        <option value="autumn">Осень</option>
+                                        <option value="Зима">Зима</option>
+                                        <option value="Весна">Весна</option>
+                                        <option value="Лето">Лето</option>
+                                        <option value="Осень">Осень</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label>Сезон 2</label>
-                                    <select class="form-control" name="season" required>
+                                    <select class="form-control" name="season2" id="outfitSeason" required>
                                         <option value="">Выберите сезон</option>
-                                        <option value="winter">Зима</option>
-                                        <option value="spring">Весна</option>
-                                        <option value="summer">Лето</option>
-                                        <option value="autumn">Осень</option>
+                                        <option value="Зима">Зима</option>
+                                        <option value="Весна">Весна</option>
+                                        <option value="Лето">Лето</option>
+                                        <option value="Осень">Осень</option>
                                     </select>
                                 </div>
                             </div>
@@ -257,14 +279,13 @@
 
 
                             <hr>
-
                             <h5>Выбранные образы</h5>
                             <div class="row" id="selectedOutfitsPreview">
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                            <button type="submit" class="btn btn-primary" id="submitCapsule">Создать капсулу</button>
+                            <button type="button" class="btn btn-primary" id="submitCapsule">Создать капсулу</button>
                         </div>
                     </form>
                 </div>
@@ -285,6 +306,7 @@ export default {
             currentEditOutfitId: null,
             outfitPreviewSrc: '',
             outfitImageFile: null,
+            clothingToDeleteId: null,
         };
     },
     mounted() {
@@ -302,6 +324,193 @@ export default {
                 }
             }
         });
+
+        document.body.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.btn-item-delete');
+            if (deleteBtn) {
+                const id = deleteBtn.getAttribute('data-id');
+                if (id) {
+                    this.clothingToDeleteId = id;
+                    $('#editOutfitModal').modal('hide');
+                    $('#confirmDeleteClothingModal').modal('show');
+                }
+            }
+        });
+
+        document.getElementById('confirmClothingDeleteBtn').addEventListener('click', async () => {
+            if (!this.clothingToDeleteId) return;
+
+            try {
+                const response = await fetch(`${API_URL}/stylist-cloth/${this.clothingToDeleteId}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+
+                const deletedCard = document.querySelector(`.btn-item-delete[data-id="${this.clothingToDeleteId}"]`)
+                    ?.closest('.card');
+                if (deletedCard) deletedCard.remove();
+
+                this.clothingToDeleteId = null;
+                $('#confirmDeleteClothingModal').modal('hide');
+                $('#editOutfitModal').modal('show');
+            } catch (err) {
+                console.error("Error deleting clothing:", err);
+                alert("Не удалось удалить элемент одежды.");
+            }
+        });
+
+        document.body.addEventListener('click', (e) => {
+            const deleteOutfitBtn = e.target.closest('.btn-delete');
+            if (deleteOutfitBtn) {
+                const id = deleteOutfitBtn.getAttribute('data-outfit-id');
+                if (id) {
+                    this.currentEditOutfitId = id;
+                    $('#confirmDeleteOutfitModal').modal('show');
+                }
+            }
+        });
+
+
+        document.getElementById('confirmOutfitDeleteBtn').addEventListener('click', async () => {
+            if (!this.currentEditOutfitId) return;
+
+            try {
+                const response = await fetch(`${API_URL}/stylist-outfit/${this.currentEditOutfitId}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+
+                $('#confirmDeleteOutfitModal').modal('hide');
+                this.showSuccess('deleteSuccess');
+                this.fetchOutfits();
+            } catch (err) {
+                console.error('Ошибка при удалении образа:', err);
+                alert('Не удалось удалить образ.');
+            }
+        });
+
+        const checkboxes = document.body.querySelectorAll('.select-checkbox');
+        const capsuleBtn = document.getElementById('createCapsuleBtn');
+
+        document.body.addEventListener('change', (e) => {
+            if (e.target.matches('.select-checkbox')) {
+                const selected = this.getSelectedOutfits();
+                capsuleBtn.disabled = selected.length < 3;
+            }
+        });
+
+        capsuleBtn.addEventListener('click', () => {
+            const selected = this.getSelectedOutfits();
+            const selectedOutfitsPreview = document.getElementById('selectedOutfitsPreview');
+            selectedOutfitsPreview.innerHTML = '';
+
+            selected.forEach((card, index) => {
+                const clone = card.cloneNode(true);
+                clone.classList.remove('col-md-3');
+                clone.classList.add('col-md-4', 'mb-3');
+                clone.setAttribute('data-preview-id', `preview-${index}`);
+
+                clone.querySelector('.btn-warning')?.remove();
+                clone.querySelector('.select-checkbox')?.remove();
+
+                const deleteBtn = clone.querySelector('.btn-delete');
+                const btnContainer = clone.querySelector('.float-right');
+                if (deleteBtn && btnContainer) {
+                    deleteBtn.classList.replace('btn-delete', 'btn-capsule-preview-delete');
+                    deleteBtn.setAttribute('data-preview-id', `preview-${index}`);
+                }
+
+                selectedOutfitsPreview.appendChild(clone);
+            });
+
+            $('#createCapsuleModal').modal('show');
+        });
+
+        document.body.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.btn-capsule-preview-delete');
+            if (deleteBtn) {
+                const previewId = deleteBtn.getAttribute('data-preview-id');
+                const previewCard = document.querySelector(`[data-preview-id="${previewId}"]`);
+                if (previewCard) {
+                    previewCard.remove();
+                    const outfitId = previewCard.getAttribute('data-id');
+                    const originalCheckbox = document.querySelector(`.select-checkbox[data-outfit-id="${outfitId}"]`);
+                    if (originalCheckbox) {
+                        originalCheckbox.checked = false;
+                    }
+                    const stillSelected = this.getSelectedOutfits();
+                    capsuleBtn.disabled = stillSelected.length < 3;
+                }
+            }
+        });
+
+        const capsuleImageInput = document.getElementById('capsuleImage');
+  const capsulePreview = document.getElementById('capsulePreview');
+
+  document.getElementById('capsuleImageUploadArea').addEventListener('click', () => {
+    capsuleImageInput.click();
+  });
+
+  capsuleImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      capsulePreview.src = URL.createObjectURL(file);
+      capsulePreview.style.display = 'block';
+    }
+  });
+
+  document.getElementById('submitCapsule').addEventListener('click', async () => {
+  const selected = this.getSelectedOutfits();
+
+  if (selected.length < 3) {
+    alert("Выберите минимум 3 образа для создания капсулы.");
+    return;
+  }
+
+  const title = document.getElementById('capsuleTitle').value;
+  const season1 = document.querySelector('[name="season1"]').value;
+  const season2 = document.querySelector('[name="season2"]').value;
+  const description = document.getElementById('capsuleDescription').value;
+  const imageInput = document.getElementById('capsuleImage');
+  const imageFile = imageInput.files[0];
+
+  const selectedIds = selected.map(card => card.getAttribute('data-id'));
+
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('season1', season1);
+  formData.append('season2', season2);
+  formData.append('description', description);
+  selectedIds.forEach(id => formData.append('outfit_ids[]', id));
+  if (imageFile) formData.append('image', imageFile);
+
+  try {
+    const response = await fetch(`${API_URL}/stylist-capsule`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(errText);
+    }
+
+    $('#createCapsuleModal').modal('hide');
+    this.showSuccess('createCapsuleSuccess');
+  } catch (err) {
+    console.error("Ошибка при создании капсулы:", err);
+    alert("Не удалось создать капсулу.");
+  }
+});
+
     },
     methods: {
         async fetchOutfits() {
@@ -376,8 +585,6 @@ export default {
             const file = event.target.files[0];
             if (file) {
                 this.outfitImageFile = file;
-
-                // Create a local URL to preview the image immediately
                 this.outfitPreviewSrc = URL.createObjectURL(file);
             }
         },
@@ -394,11 +601,9 @@ export default {
                 form.season.value = outfit.season || '';
                 form.outfitDescription.value = outfit.description || '';
 
-                // Set preview image src (initially from server image)
                 this.outfitPreviewSrc = this.siteUrl + '/app-images/' + outfit.image_url;
-                this.outfitImageFile = null; // reset selected file on load
+                this.outfitImageFile = null;
 
-                // Clear clothing items container
                 const container = document.getElementById('clothingItemsContainer');
                 container.innerHTML = '';
 
@@ -470,6 +675,11 @@ export default {
                     el.style.display = 'none';
                 }, 3000);
             }
+        },
+        getSelectedOutfits() {
+            return Array.from(document.querySelectorAll('.select-checkbox:checked')).map(cb =>
+                cb.closest('[data-id]')
+            );
         },
     }
 };
