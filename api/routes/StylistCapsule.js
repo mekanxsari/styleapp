@@ -98,4 +98,35 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query(
+      `DELETE FROM capsulas_superset WHERE capsulas_id = $1`,
+      [id]
+    );
+
+    const result = await pool.query(
+      `DELETE FROM capsulas WHERE id = $1 RETURNING image_url`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Capsule not found' });
+    }
+
+    const imagePath = path.join(uploadDir, result.rows[0].image_url);
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+
+    res.json({ message: 'Capsule deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting capsule:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 module.exports = router;

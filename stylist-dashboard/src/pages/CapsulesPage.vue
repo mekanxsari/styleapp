@@ -88,7 +88,8 @@
                   </div>
                 </div>
               </div>
-              <input type="file" ref="capsuleImageInput" @change="handleImageUpload" accept="image/*" style="display: none;">
+              <input type="file" ref="capsuleImageInput" @change="handleImageUpload" accept="image/*"
+                style="display: none;">
             </div>
 
             <div class="form-group">
@@ -101,21 +102,21 @@
                 <label>Сезон 1</label>
                 <select class="form-control" v-model="selectedCapsule.seasons[0]" required>
                   <option value="">Выберите сезон</option>
-                  <option value="winter">Зима</option>
-                  <option value="spring">Весна</option>
-                  <option value="summer">Лето</option>
-                  <option value="autumn">Осень</option>
+                  <option value="Зима">Зима</option>
+                  <option value="Весна">Весна</option>
+                  <option value="Лето">Лето</option>
+                  <option value="Осень">Осень</option>
                 </select>
               </div>
 
               <div class="form-group col-md-6">
                 <label>Сезон 2</label>
-                <select class="form-control" v-model="selectedCapsule.seasons[1]" required>
+                <select class="form-control" v-model="selectedCapsule.seasons[1]">
                   <option value="">Выберите сезон</option>
-                  <option value="winter">Зима</option>
-                  <option value="spring">Весна</option>
-                  <option value="summer">Лето</option>
-                  <option value="autumn">Осень</option>
+                  <option value="Зима">Зима</option>
+                  <option value="Весна">Весна</option>
+                  <option value="Лето">Лето</option>
+                  <option value="Осень">Осень</option>
                 </select>
               </div>
             </div>
@@ -137,7 +138,8 @@
                     <div class="outfit-title">
                       {{ outfit.title }}
                       <div class="float-right" style="margin-top: 7px;">
-                        <button type="button" class="btn btn-sm btn-danger" @click="confirmOutfitDelete(outfit.id)" title="Удалить">
+                        <button type="button" class="btn btn-sm btn-danger" @click="confirmOutfitDelete(outfit.id)"
+                          title="Удалить">
                           <i class="fas fa-trash"></i>
                         </button>
                       </div>
@@ -218,24 +220,35 @@ export default {
         console.error('Ошибка при загрузке капсул:', error);
       }
     },
-    openEditModal(capsule) {
-      this.selectedCapsule = JSON.parse(JSON.stringify(capsule));
-      $('#editCapsuleModal').modal('show');
+    async openEditModal(capsule) {
+      try {
+        const response = await fetch(`${API_URL}/stylist-capsule/${capsule.id}`);
+        const data = await response.json();
+
+        this.selectedCapsule = {
+          id: data.id,
+          title: data.title,
+          image: `${SITE_URL}/app-images/${data.image_url}`,
+          seasons: [data.season_1 || '', data.season_2 || ''],
+          description: data.description || '',
+          outfits: (data.outfits || []).map(o => ({
+            id: o.id,
+            title: o.title,
+            image: `${SITE_URL}/app-images/${o.image_url}`,
+            seasons: [o.season],
+            label: o.label
+          }))
+        };
+
+        $('#editCapsuleModal').modal('show');
+      } catch (error) {
+        console.error('Ошибка при загрузке капсулы:', error);
+      }
     },
     confirmDelete(id) {
       this.currentDeleteType = 'capsule';
       this.currentDeleteId = id;
       $('#deleteModal').modal('show');
-    },
-    deleteItem() {
-      if (this.currentDeleteType === 'capsule') {
-        this.capsules = this.capsules.filter(c => c.id !== this.currentDeleteId);
-        $('#deleteModal').modal('hide');
-        $('#deleteSuccessAlert').fadeIn();
-        setTimeout(() => {
-          $('#deleteSuccessAlert').fadeOut();
-        }, 3000);
-      }
     },
     saveChanges() {
       const index = this.capsules.findIndex(c => c.id === this.selectedCapsule.id);
@@ -257,7 +270,53 @@ export default {
         this.selectedCapsule.image = event.target.result;
       };
       reader.readAsDataURL(file);
-    }
+    },
+    confirmOutfitDelete(outfitId) {
+      this.currentDeleteType = 'outfit';
+      this.currentDeleteId = outfitId;
+      $('#deleteModal').modal('show');
+    },
+    async deleteItem() {
+      if (this.currentDeleteType === 'capsule') {
+        try {
+          await fetch(`${API_URL}/stylist-capsule/${this.currentDeleteId}`, {
+            method: 'DELETE'
+          });
+
+          this.capsules = this.capsules.filter(c => c.id !== this.currentDeleteId);
+          $('#deleteModal').modal('hide');
+          $('#deleteSuccessAlert').fadeIn();
+          setTimeout(() => {
+            $('#deleteSuccessAlert').fadeOut();
+          }, 3000);
+        } catch (error) {
+          console.error('Ошибка при удалении капсулы:', error);
+        }
+      }
+
+      if (this.currentDeleteType === 'outfit') {
+        try {
+          await fetch(`${API_URL}/stylist-outfit/${this.currentDeleteId}`, {
+            method: 'DELETE'
+          });
+
+          this.selectedCapsule.outfits = this.selectedCapsule.outfits.filter(
+            o => o.id !== this.currentDeleteId
+          );
+
+          $('#deleteModal').modal('hide');
+          $('#deleteOutfitSuccessAlert').fadeIn();
+          setTimeout(() => {
+            $('#deleteOutfitSuccessAlert').fadeOut();
+          }, 3000);
+        } catch (error) {
+          console.error('Ошибка при удалении образа:', error);
+        }
+      }
+
+      this.currentDeleteId = null;
+      this.currentDeleteType = null;
+    },
   }
 }
 </script>
