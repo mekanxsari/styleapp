@@ -61,4 +61,69 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  const outfitId = req.params.id;
+  try {
+    // Get outfit details
+    const outfitResult = await pool.query(
+      'SELECT * FROM outfits WHERE id = $1',
+      [outfitId]
+    );
+
+    if (outfitResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Outfit not found' });
+    }
+
+    const outfit = outfitResult.rows[0];
+
+    const clothesResult = await pool.query(
+      `
+      SELECT c.*
+      FROM clothes c
+      JOIN outfits_superset os ON c.id = os.clothes_id
+      WHERE os.outfit_id = $1
+      `,
+      [outfitId]
+    );
+
+    outfit.clothes = clothesResult.rows;
+
+    res.json(outfit);
+  } catch (error) {
+    console.error('Error fetching outfit:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  const outfitId = req.params.id;
+
+  try {
+    const outfitResult = await pool.query(
+      'SELECT image_url FROM outfits WHERE id = $1',
+      [outfitId]
+    );
+
+    if (outfitResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Outfit not found' });
+    }
+
+    const imageUrl = outfitResult.rows[0].image_url;
+
+    await pool.query('DELETE FROM outfits_superset WHERE outfit_id = $1', [outfitId]);
+
+    await pool.query('DELETE FROM outfits WHERE id = $1', [outfitId]);
+
+    const filePath = path.join(uploadDir, imageUrl);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    res.json({ message: 'Outfit deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting outfit:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 module.exports = router;

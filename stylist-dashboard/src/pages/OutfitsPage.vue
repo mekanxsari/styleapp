@@ -33,13 +33,14 @@
             <div class="col-md-3" v-for="outfit in outfits" :key="outfit.id" :data-id="outfit.id">
               <div class="card outfit-card">
                 <div class="outfit-img-container">
-                  <img :src="outfit.image" class="outfit-img" :alt="outfit.title" />
+                  <img :src="siteUrl + '/app-images/' + outfit.image_url" class="outfit-img" :alt="outfit.title" />
                   <input type="checkbox" class="select-checkbox" :data-outfit-id="outfit.id" />
                 </div>
                 <div class="outfit-title flex">
                   {{ outfit.title }}
                   <div class="float-right" style="margin-top: 10px;">
-                    <button class="btn btn-sm btn-warning mr-1" data-toggle="modal" data-target="#editOutfitModal">
+                    <button class="btn btn-sm btn-warning mr-1" data-toggle="modal" data-target="#editOutfitModal"
+                    :data-outfit-id="outfit.id" >
                       <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn btn-sm btn-delete" :data-outfit-id="outfit.id">
@@ -47,7 +48,7 @@
                     </button>
                   </div>
                   <div style="font-weight: normal; font-size: 14px;">
-                    {{ outfit.season }} | {{ outfit.category }}
+                    {{ outfit.season }} | {{ outfit.label }}
                   </div>
                 </div>
               </div>
@@ -327,41 +328,39 @@
   </div>
 </template>
 <script>
+import { API_URL, SITE_URL } from '../api'
+
 export default {
-    data() {
-        return {
-            outfits: [
-                {
-                    id: 1,
-                    title: "Вечерний образ",
-                    category: "Casual",
-                    season: "Summer",
-                    image: "https://mekanxsari.ru/app-images/47.jpg"
-                },
-                {
-                    id: 2,
-                    title: "Деловой стиль",
-                    category: "Business",
-                    season: "Spring",
-                    image: "https://mekanxsari.ru/app-images/48.jpg"
-                },
-                {
-                    id: 3,
-                    title: "Спортивный образ",
-                    category: "Sportive",
-                    season: "Autumn",
-                    image: "https://mekanxsari.ru/app-images/49.jpg"
-                },
-                {
-                    id: 4,
-                    title: "Пляжный стиль",
-                    category: "Beach",
-                    season: "Summer",
-                    image: "https://mekanxsari.ru/app-images/50.jpg"
-                }
-            ]
-        };
+  data() {
+    return {
+      outfits: [],
+      isLoading: false,
+      error: null,
+      siteUrl: SITE_URL
+    };
+  },
+  mounted() {
+    this.fetchOutfits();
+  },
+  methods: {
+    async fetchOutfits() {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await fetch(`${API_URL}/stylist-outfits`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        this.outfits = data;
+      } catch (err) {
+        this.error = 'Ошибка при загрузке данных: ' + err.message;
+        console.error(err);
+      } finally {
+        this.isLoading = false;
+      }
     }
+  }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
