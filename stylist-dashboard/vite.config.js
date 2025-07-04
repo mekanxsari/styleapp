@@ -5,6 +5,11 @@ export default defineConfig({
   plugins: [vue()],
   base: '/stylist/',
   build: {
-    outDir: '../stylist'
-  }
+    out,
+    Dir: '../stylist'
+  },
+  server: {
+    host: true,
+    port: 5173,
+  },
 })
