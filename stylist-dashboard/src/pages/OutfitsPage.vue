@@ -251,7 +251,7 @@
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label>Сезон 1</label>
-                                    <select class="form-control" name="season1" id="outfitSeason" required>
+                                    <select class="form-control" name="season1" id="outfitSeason1" required>
                                         <option value="">Выберите сезон</option>
                                         <option value="Зима">Зима</option>
                                         <option value="Весна">Весна</option>
@@ -262,7 +262,7 @@
 
                                 <div class="form-group col-md-6">
                                     <label>Сезон 2</label>
-                                    <select class="form-control" name="season2" id="outfitSeason" required>
+                                    <select class="form-control" name="season2" id="outfitSeason2" required>
                                         <option value="">Выберите сезон</option>
                                         <option value="Зима">Зима</option>
                                         <option value="Весна">Весна</option>
@@ -476,8 +476,8 @@ export default {
   }
 
   const title = document.getElementById('capsuleTitle').value;
-  const season1 = document.querySelector('[name="season1"]').value;
-  const season2 = document.querySelector('[name="season2"]').value;
+  const season1 = document.getElementById('outfitSeason1').value;
+  const season2 = document.getElementById('outfitSeason1"]').value;
   const description = document.getElementById('capsuleDescription').value;
   const imageInput = document.getElementById('capsuleImage');
   const imageFile = imageInput.files[0];
@@ -487,8 +487,8 @@ export default {
   const formData = new FormData();
   formData.append('title', title);
   formData.append('season1', season1);
-  formData.append('season2', season2);
-  formData.append('description', description);
+formData.append('season2', season2 || '');
+formData.append('description', description || '');
   selectedIds.forEach(id => formData.append('outfit_ids[]', id));
   if (imageFile) formData.append('image', imageFile);
 
