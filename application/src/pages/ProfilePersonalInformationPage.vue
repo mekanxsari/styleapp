@@ -10,7 +10,7 @@
         <input type="text" class="user-input" placeholder="Введите здесь..." required />
 
         <label class="user-label">Дата рождения</label>
-        <input type="date" class="user-input" placeholder="Введите здесь..." required />
+        <input type="text" class="user-input" placeholder="день.месяц.год" required />
 
         <label class="user-label">Город проживания</label>
         <input type="text" class="user-input" placeholder="Введите здесь..." required />
