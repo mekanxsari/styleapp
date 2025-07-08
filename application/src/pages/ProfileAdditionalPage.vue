@@ -28,10 +28,6 @@
                 <label class="user-label">
                     Какое впечатление Вы бы хотели производить на окружающих?
                 </label>
-                
-                <label class="user-label">
-                    Какое впечатление Вы бы хотели производить на окружающих?
-                </label>
                 <div class="checkbox" v-for="(impressionType, index) in impressionTypes" :key="'type' + index">
                     <input type="checkbox" :id="'type' + index" :value="impressionType"
                         v-model="selectedImpressionTypes" />
