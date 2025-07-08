@@ -128,5 +128,60 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+router.put('/:id', upload.single('image'), async (req, res) => {
+  const { title, description, season1, season2 } = req.body;
+  const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids;
+  const { id } = req.params;
+
+  try {
+    const existingCapsule = await pool.query(
+      `SELECT image_url FROM capsulas WHERE id = $1`,
+      [id]
+    );
+
+    if (existingCapsule.rows.length === 0) {
+      return res.status(404).json({ message: 'Capsule not found' });
+    }
+
+    const oldImage = existingCapsule.rows[0].image_url;
+    let image_url = oldImage;
+
+    if (req.file) {
+      image_url = req.file.filename;
+      const oldImagePath = path.join(uploadDir, oldImage);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    await pool.query(
+      `
+      UPDATE capsulas
+      SET image_url = $1, title = $2, description = $3, season_1 = $4, season_2 = $5
+      WHERE id = $6
+      `,
+      [image_url, title, description || '', season1, season2, id]
+    );
+
+    if (outfitIds) {
+      const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];
+
+      await pool.query(`DELETE FROM capsulas_superset WHERE capsulas_id = $1`, [id]);
+
+      const insertValues = outfits.map((_, i) => `($1, $${i + 2})`).join(', ');
+      const insertParams = [id, ...outfits];
+
+      await pool.query(
+        `INSERT INTO capsulas_superset (capsulas_id, outfit_id) VALUES ${insertValues}`,
+        insertParams
+      );
+    }
+
+    res.json({ message: 'Capsule updated successfully' });
+  } catch (err) {
+    console.error('Error updating capsule:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;

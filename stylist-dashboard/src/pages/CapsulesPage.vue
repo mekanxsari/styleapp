@@ -16,6 +16,11 @@
       Изменения успешно сохранены!
     </div>
 
+    <div id="errorAlert" class="alert alert-danger alert-dismissible fade show" role="alert"
+      style="display:none; position: fixed; top: 20px; right: 20px; z-index: 9999;">
+      Произошла ошибка. Пожалуйста, попробуйте позже.
+    </div>
+
     <div class="container-fluid py-2">
       <div class="card mb-4">
         <div class="card-body">
@@ -182,6 +187,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import { API_URL, SITE_URL } from '../api'
 
@@ -195,8 +201,10 @@ export default {
         title: '',
         image: '',
         seasons: ['', ''],
-        description: ''
+        description: '',
+        outfits: []
       },
+      uploadedImageFile: null,
       currentDeleteType: null,
       currentDeleteId: null
     }
@@ -212,7 +220,7 @@ export default {
         this.capsules = data.map(c => ({
           id: c.id,
           title: c.title,
-          image: `${SITE_URL}/app-images/${c.image_url}`,
+          image: `${SITE_URL}/app-images/${c.image_url}?t=${Date.now()}`,
           seasons: [c.season_1, c.season_2].filter(Boolean),
           description: c.description
         }));
@@ -228,42 +236,31 @@ export default {
         this.selectedCapsule = {
           id: data.id,
           title: data.title,
-          image: `${SITE_URL}/app-images/${data.image_url}`,
+          image: `${SITE_URL}/app-images/${data.image_url}?t=${Date.now()}`,
           seasons: [data.season_1 || '', data.season_2 || ''],
           description: data.description || '',
           outfits: (data.outfits || []).map(o => ({
             id: o.id,
             title: o.title,
-            image: `${SITE_URL}/app-images/${o.image_url}`,
+            image: `${SITE_URL}/app-images/${o.image_url}?t=${Date.now()}`,
             seasons: [o.season],
             label: o.label
           }))
         };
+
+        this.uploadedImageFile = null;
+        if (this.$refs.capsuleImageInput) this.$refs.capsuleImageInput.value = null;
 
         $('#editCapsuleModal').modal('show');
       } catch (error) {
         console.error('Ошибка при загрузке капсулы:', error);
       }
     },
-    confirmDelete(id) {
-      this.currentDeleteType = 'capsule';
-      this.currentDeleteId = id;
-      $('#deleteModal').modal('show');
-    },
-    saveChanges() {
-      const index = this.capsules.findIndex(c => c.id === this.selectedCapsule.id);
-      if (index >= 0) {
-        this.capsules.splice(index, 1, { ...this.selectedCapsule });
-      }
-      $('#editCapsuleModal').modal('hide');
-      $('#saveSuccessAlert').fadeIn();
-      setTimeout(() => {
-        $('#saveSuccessAlert').fadeOut();
-      }, 3000);
-    },
     handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
+
+      this.uploadedImageFile = file;
 
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -271,52 +268,77 @@ export default {
       };
       reader.readAsDataURL(file);
     },
+    async saveChanges() {
+      if (!this.selectedCapsule.title || !this.selectedCapsule.seasons[0] || this.selectedCapsule.outfits.length === 0) {
+        $('#errorAlert').fadeIn().text('Заполните все обязательные поля');
+        setTimeout(() => { $('#errorAlert').fadeOut(); }, 3000);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', this.selectedCapsule.title);
+      formData.append('description', this.selectedCapsule.description || '');
+      formData.append('season1', this.selectedCapsule.seasons[0]);
+      formData.append('season2', this.selectedCapsule.seasons[1] || '');
+
+      this.selectedCapsule.outfits.forEach(o => {
+        formData.append('outfit_ids[]', o.id);
+      });
+
+      if (this.uploadedImageFile) {
+        formData.append('image', this.uploadedImageFile);
+      }
+
+      try {
+        await fetch(`${API_URL}/stylist-capsule/${this.selectedCapsule.id}`, {
+          method: 'PUT',
+          body: formData
+        });
+
+        await this.fetchCapsules();
+        $('#editCapsuleModal').modal('hide');
+        $('#saveSuccessAlert').fadeIn();
+        setTimeout(() => { $('#saveSuccessAlert').fadeOut(); }, 3000);
+      } catch (err) {
+        console.error('Ошибка при сохранении изменений:', err);
+        $('#errorAlert').fadeIn();
+        setTimeout(() => { $('#errorAlert').fadeOut(); }, 3000);
+      }
+    },
+    confirmDelete(id) {
+      this.currentDeleteType = 'capsule';
+      this.currentDeleteId = id;
+      $('#deleteModal').modal('show');
+    },
     confirmOutfitDelete(outfitId) {
       this.currentDeleteType = 'outfit';
       this.currentDeleteId = outfitId;
       $('#deleteModal').modal('show');
     },
     async deleteItem() {
-      if (this.currentDeleteType === 'capsule') {
-        try {
-          await fetch(`${API_URL}/stylist-capsule/${this.currentDeleteId}`, {
-            method: 'DELETE'
-          });
-
+      try {
+        if (this.currentDeleteType === 'capsule') {
+          await fetch(`${API_URL}/stylist-capsule/${this.currentDeleteId}`, { method: 'DELETE' });
           this.capsules = this.capsules.filter(c => c.id !== this.currentDeleteId);
-          $('#deleteModal').modal('hide');
           $('#deleteSuccessAlert').fadeIn();
-          setTimeout(() => {
-            $('#deleteSuccessAlert').fadeOut();
-          }, 3000);
-        } catch (error) {
-          console.error('Ошибка при удалении капсулы:', error);
-        }
-      }
-
-      if (this.currentDeleteType === 'outfit') {
-        try {
-          await fetch(`${API_URL}/stylist-outfit/${this.currentDeleteId}`, {
-            method: 'DELETE'
-          });
-
-          this.selectedCapsule.outfits = this.selectedCapsule.outfits.filter(
-            o => o.id !== this.currentDeleteId
-          );
-
-          $('#deleteModal').modal('hide');
+        } else if (this.currentDeleteType === 'outfit') {
+          await fetch(`${API_URL}/stylist-outfit/${this.currentDeleteId}`, { method: 'DELETE' });
+          this.selectedCapsule.outfits = this.selectedCapsule.outfits.filter(o => o.id !== this.currentDeleteId);
           $('#deleteOutfitSuccessAlert').fadeIn();
-          setTimeout(() => {
-            $('#deleteOutfitSuccessAlert').fadeOut();
-          }, 3000);
-        } catch (error) {
-          console.error('Ошибка при удалении образа:', error);
         }
+      } catch (error) {
+        console.error('Ошибка при удалении:', error);
+        $('#errorAlert').fadeIn();
       }
 
+      setTimeout(() => {
+        $('#deleteSuccessAlert, #deleteOutfitSuccessAlert, #errorAlert').fadeOut();
+      }, 3000);
+
+      $('#deleteModal').modal('hide');
       this.currentDeleteId = null;
       this.currentDeleteType = null;
-    },
+    }
   }
 }
 </script>
