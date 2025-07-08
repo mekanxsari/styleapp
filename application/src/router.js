@@ -8,6 +8,11 @@ import OutfitsPage from './pages/OutfitsPage.vue';
 import ItemPage from './pages/ItemPage.vue';
 import LikesPage from './pages/LikesPage.vue';
 import LoginPage from './pages/LoginPage.vue';
+import ProfilePage from './pages/ProfilePage.vue';
+import PersonalInformationPage from './pages/ProfilePersonalInformationPage.vue';
+import ProfileSizePage from './pages/ProfileSizePage.vue';
+import ProfileAdditionalPage from './pages/ProfileAdditionalPage.vue';
+import ProfileImageUploadPage from './pages/ProfileImageUploadPage.vue';
 
 const routes = [
   { path: '/', component: CapsulasPage },
@@ -16,7 +21,12 @@ const routes = [
   { path: '/outfits', component: OutfitsPage },
   { path: '/item/:id', component: ItemPage },
   { path: '/likes', component: LikesPage },
-  { path: '/login', component: LoginPage }
+  { path: '/login', component: LoginPage },
+  { path: '/profile', component: ProfilePage },
+  { path: '/profile/personal', component: PersonalInformationPage },
+  { path: '/profile/sizes', component: ProfileSizePage },
+  { path: '/profile/additional', component: ProfileAdditionalPage },
+  { path: '/profile/upload', component: ProfileImageUploadPage }
 ];
 
 export const router = createRouter({
