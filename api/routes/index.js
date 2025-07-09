@@ -4,6 +4,7 @@ const router = express.Router();
 //USER INTERFACE API
 const authRouter = require('./auth');
 const checkSessionRouter = require('./check-session');
+const verifyPassCode = require('./verify-passcode');
 const capsulasRouter = require('./capsulas');
 const outfitsRouter = require('./outfits');
 const capsulaRouter = require('./capsula');
@@ -14,6 +15,7 @@ const likeRouter = require('./like');
 
 router.use('/auth', authRouter);
 router.use('/check-session', checkSessionRouter);
+router.use('/verify-passcode', verifyPassCode);
 router.use('/capsulas', capsulasRouter);
 router.use('/outfits', outfitsRouter);
 router.use('/capsula', capsulaRouter);

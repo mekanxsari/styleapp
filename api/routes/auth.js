@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
       user = insertResult.rows[0]
     }
 
-    res.json({ success: true, token, id: user.id })
+    res.json({ success: true, token, id: user.id, hasPasscode: !!user.passcode })
   } catch (err) {
     console.error('DB error:', err)
     res.status(500).json({ success: false, reason: 'Database error' })

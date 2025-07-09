@@ -18,6 +18,9 @@
 
       <ul class="menu-options">
         <li>
+          <router-link to="/likes">Лайки</router-link>
+        </li>
+        <li>
           <router-link to="/profile/personal">Персональные данные</router-link>
         </li>
         <li>
