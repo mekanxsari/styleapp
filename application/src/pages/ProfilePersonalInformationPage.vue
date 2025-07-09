@@ -47,6 +47,9 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import IMask from 'imask'
 import { API_URL, SITE_URL } from '../api'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const phoneInput = ref(null)
 let mask = null
@@ -98,7 +101,7 @@ async function fetchUserData(userId) {
       if (mask && result.user.phone_number) {
         mask.value = result.user.phone_number
       }
-      
+
       formValues.value.marital_status = String(result.user.marital_status)
     } else {
       console.error('User not found or error:', result.message)
@@ -108,7 +111,7 @@ async function fetchUserData(userId) {
   }
 }
 
-function onSubmit() {
+async function onSubmit() {
   submitAttempted.value = true
 
   if (formValues.value.email && formValues.value.email.trim() !== '') {
@@ -117,9 +120,36 @@ function onSubmit() {
     isEmailValid.value = true
   }
 
-  if (isEmailValid.value) {
-    alert('Форма успешно отправлена!')
-    // Here you can send formValues.value to API for update/save
+  if (!isEmailValid.value) {
+    return
+  }
+
+  try {
+    const userId = localStorage.getItem('user_id')
+    if (!userId) {
+      alert('User not logged in')
+      return
+    }
+
+    const response = await fetch(`${API_URL}/user-personal`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId
+      },
+      body: JSON.stringify(formValues.value)
+    })
+
+    const result = await response.json()
+    if (result.success) {
+      router.push('/profile')
+    } else {
+      alert('Ошибка при обновлении: ' + (result.message || 'Unknown error'))
+    }
+  } catch (err) {
+    console.error('Error updating user data:', err)
+    alert('Ошибка сети при обновлении данных')
   }
 }
+
 </script>
