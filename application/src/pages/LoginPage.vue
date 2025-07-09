@@ -13,7 +13,7 @@
 
       <div class="inline-space"></div>
 
-      <form class="form" @submit.prevent="loginWithTelegram">
+      <form class="form" v-if="!requirePasscode" @submit.prevent="loginWithTelegram">
         <button type="submit" class="button" :disabled="loading">
           <template v-if="loading">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 40 40" fill="none">
@@ -46,6 +46,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_URL } from '../api'
+
+const router = useRouter()
+const error = ref('')
+const loading = ref(false)
 
 const requirePasscode = ref(false)
 const passcode = ref('')
@@ -128,24 +132,3 @@ async function submitPasscode() {
   }
 }
 </script>
-
-<style scoped>
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-.path {
-  stroke: white;
-  stroke-linecap: round;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>
