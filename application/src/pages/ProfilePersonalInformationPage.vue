@@ -31,7 +31,6 @@
           v-model="email"
           :class="['user-input', { invalid: submitAttempted && !isEmailValid }]"
           placeholder="Введите здесь..."
-          required
         />
 
         <label class="user-label">Профессия</label>
@@ -39,7 +38,7 @@
 
         <label class="user-label">Семейное положение</label>
         <div class="radio">
-          <input type="radio" name="group1" value="option1" id="opt1" required />
+          <input type="radio" name="group1" value="option1" id="opt1" />
           <label for="opt1">Замужем</label>
         </div>
         <div class="radio">

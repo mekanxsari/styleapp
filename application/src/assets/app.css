@@ -1,3 +1,14 @@
+html, body {
+  overflow: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
 body {
     font-family: "Inter", sans-serif;
     font-optical-sizing: auto;

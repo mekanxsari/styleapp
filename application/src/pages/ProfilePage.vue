@@ -33,9 +33,20 @@
           <router-link to="/profile/upload">Отправка фотографий</router-link>
         </li>
         <li class="logout">
-          <router-link to="/logout">Выйти</router-link>
+          <a href="#" @click.prevent="logout">Выйти</a>
         </li>
       </ul>
     </div>
   </div>
 </template>
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function logout() {
+  localStorage.removeItem('session_token')
+  localStorage.removeItem('user_id')
+  router.push('/login')
+}
+</script>
