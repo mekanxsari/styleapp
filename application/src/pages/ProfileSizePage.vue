@@ -60,6 +60,8 @@ import { ref, onMounted } from 'vue'
 import { API_URL } from '../api'
 import { useRouter } from 'vue-router'
 
+const router = useRouter()
+
 const userId = localStorage.getItem('user_id')
 const sizes = ['XS (42)', 'S (44)', 'M (46)', 'L (48)', 'XL (50)', 'XXL (52)']
 
