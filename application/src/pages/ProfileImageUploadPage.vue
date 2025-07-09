@@ -16,7 +16,13 @@
             class="image-item"
           >
             <img :src="image.url" :alt="'Uploaded image ' + (index + 1)" />
-            <button @click="removeImage(index)" class="remove-btn" type="button">×</button>
+            <button
+              @click="removeImage(index)"
+              class="remove-btn"
+              type="button"
+            >
+              ×
+            </button>
           </div>
 
           <div class="upload-rectangle" @click="triggerFileInput">
@@ -44,6 +50,8 @@ import { useRouter } from 'vue-router'
 import { API_URL } from '../api'
 
 const router = useRouter()
+const userId = localStorage.getItem('user_id')
+
 const uploadedImages = ref([])
 const fileInput = ref(null)
 
@@ -53,12 +61,12 @@ function triggerFileInput() {
 
 function handleFileUpload(event) {
   const files = Array.from(event.target.files)
-  files.forEach(file => {
+  files.forEach((file) => {
     const reader = new FileReader()
-    reader.onload = e => {
+    reader.onload = (e) => {
       uploadedImages.value.push({
         url: e.target.result,
-        file: file
+        file: file,
       })
     }
     reader.readAsDataURL(file)
@@ -76,24 +84,23 @@ async function submitImages() {
     return
   }
 
+  if (!userId) {
+    alert('User ID not found. Please log in.')
+    return
+  }
+
   const formData = new FormData()
-  uploadedImages.value.forEach(imageObj => {
+  uploadedImages.value.forEach((imageObj) => {
     formData.append('images', imageObj.file)
   })
 
   try {
-    const userId = localStorage.getItem('user_id')
-    if (!userId) {
-      alert('User ID not found. Please log in.')
-      return
-    }
-
     const response = await fetch(`${API_URL}/user-image`, {
       method: 'POST',
       headers: {
-        'x-user-id': userId
+        'x-user-id': userId,
       },
-      body: formData
+      body: formData,
     })
 
     const data = await response.json()
