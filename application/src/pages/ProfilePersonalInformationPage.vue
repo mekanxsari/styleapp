@@ -95,7 +95,10 @@ async function fetchUserData(userId) {
     const result = await response.json()
     if (result.success) {
       Object.assign(formValues.value, result.user)
-
+      if (mask && result.user.phone_number) {
+        mask.value = result.user.phone_number
+      }
+      
       formValues.value.marital_status = String(result.user.marital_status)
     } else {
       console.error('User not found or error:', result.message)
