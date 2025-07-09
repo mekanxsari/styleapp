@@ -57,7 +57,7 @@ router.post('/verify-passcode', async (req, res) => {
     }
 
     if (user.passcode !== passcode) {
-      return res.status(401).json({ success: false, reason: 'Wrong passcode' })
+      return res.status(401).json({ success: false, reason: 'Неверный код' })
     }
 
     res.json({ success: true })
