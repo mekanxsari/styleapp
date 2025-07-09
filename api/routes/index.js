@@ -11,7 +11,8 @@ const outfitRouter = require('./outfit');
 const clothRouter = require('./cloth');
 const likesRouter = require('./likes');
 const likeRouter = require('./like');
-const userPersonal = require('./userPersonal');
+const userPersonal = require('./user-personal');
+const userProfile = require('./user-profile');
 
 router.use('/auth', authRouter);
 router.use('/check-session', checkSessionRouter);
@@ -23,6 +24,7 @@ router.use('/cloth', clothRouter);
 router.use('/likes', likesRouter);
 router.use('/like', likeRouter);
 router.use('/user-personal', userPersonal);
+router.use('/user-profile', userProfile);
 
 //STYLIST DASHBOARD API
 const authStylistRouter = require('./stylist-auth');
