@@ -47,7 +47,7 @@
           <label for="opt2">Не замужем</label>
         </div>
 
-        <button type="submit" class="user-submit">Подтверждать</button>
+        <button type="submit" class="user-submit">Подтвердить</button>
       </form>
     </div>
   </div>

@@ -27,12 +27,11 @@
               accept="image/*"
               style="display: none"
             />
-            <p>Добавлять</p>
+            <p>Добавить</p>
           </div>
         </div>
 
-        <!-- ✅ Button is placed separately under the image list -->
-        <button type="submit" class="upload">Подтверждать</button>
+        <button type="submit" class="upload">Подтвердить</button>
       </form>
     </div>
   </div>

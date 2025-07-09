@@ -60,7 +60,7 @@
         <label class="user-label">Обхват бедер</label>
         <input type="text" class="user-input" placeholder="Введите здесь..." required />
 
-        <button type="submit" class="user-submit">Подтверждать</button>
+        <button type="submit" class="user-submit">Подтвердить</button>
       </form>
     </div>
   </div>
