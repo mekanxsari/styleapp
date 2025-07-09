@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
       )
     } else {
       const insertResult = await pool.query(
-        "INSERT INTO users (alias, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id",
+        "INSERT INTO users (alias, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id, passcode",
         [alias, token, expiresAt]
       )
       user = insertResult.rows[0]
