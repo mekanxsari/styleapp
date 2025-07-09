@@ -32,7 +32,20 @@
 
       <form v-if="requirePasscode" class="form" @submit.prevent="submitPasscode">
         <input type="password" v-model="passcode" placeholder="Введите код доступа" class="input" />
-        <button class="button" :disabled="loading">Подтвердить</button>
+        <button class="button" :disabled="loading">
+          <template v-if="loading">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="18" stroke="white" stroke-width="4" stroke-linecap="round"
+                stroke-dasharray="113" stroke-dashoffset="80">
+                <animateTransform attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="1s"
+                  repeatCount="indefinite" />
+              </circle>
+            </svg>
+          </template>
+          <template v-else>
+            Подтвердить
+          </template>
+        </button>
       </form>
 
       <p v-if="error" class="text">
