@@ -43,6 +43,10 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { API_URL } from '../api'
+
 const requirePasscode = ref(false)
 const passcode = ref('')
 const tempSession = ref(null)
@@ -70,12 +74,10 @@ async function loginWithTelegram() {
 
     if (result.success) {
       if (result.hasPasscode) {
-        // Ask user to input passcode
         requirePasscode.value = true
         tempSession.value = result.token
         tempUserId.value = result.id
       } else {
-        // No passcode, continue login
         localStorage.setItem('session_token', result.token)
         localStorage.setItem('user_id', result.id)
         await router.push('/')
