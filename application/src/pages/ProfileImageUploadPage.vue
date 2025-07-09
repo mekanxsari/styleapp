@@ -8,7 +8,7 @@
     </div>
 
     <div class="upload-container">
-      <form class="upload-form" @submit.prevent>
+      <form class="upload-form" @submit.prevent="submitImages">
         <div class="images-list">
           <div
             v-for="(image, index) in uploadedImages"
@@ -25,6 +25,7 @@
               ref="fileInput"
               @change="handleFileUpload"
               accept="image/*"
+              multiple
               style="display: none"
             />
             <p>Добавить</p>
@@ -37,35 +38,75 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "ImageUploader",
-  data() {
-    return {
-      uploadedImages: []
-    };
-  },
-  methods: {
-    triggerFileInput() {
-      this.$refs.fileInput.click();
-    },
-    handleFileUpload(event) {
-      const files = event.target.files;
-      if (files && files[0]) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.uploadedImages.push({
-            url: e.target.result,
-            file: files[0]
-          });
-        };
-        reader.readAsDataURL(files[0]);
-      }
-      event.target.value = '';
-    },
-    removeImage(index) {
-      this.uploadedImages.splice(index, 1);
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { API_URL } from '../api'
+
+const router = useRouter()
+const uploadedImages = ref([])
+const fileInput = ref(null)
+
+function triggerFileInput() {
+  fileInput.value.click()
+}
+
+function handleFileUpload(event) {
+  const files = Array.from(event.target.files)
+  files.forEach(file => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      uploadedImages.value.push({
+        url: e.target.result,
+        file: file
+      })
     }
+    reader.readAsDataURL(file)
+  })
+  event.target.value = ''
+}
+
+function removeImage(index) {
+  uploadedImages.value.splice(index, 1)
+}
+
+async function submitImages() {
+  if (uploadedImages.value.length === 0) {
+    alert('Пожалуйста, добавьте хотя бы одно изображение.')
+    return
   }
-};
+
+  const formData = new FormData()
+  uploadedImages.value.forEach(imageObj => {
+    formData.append('images', imageObj.file)
+  })
+
+  try {
+    const userId = localStorage.getItem('user_id')
+    if (!userId) {
+      alert('User ID not found. Please log in.')
+      return
+    }
+
+    const response = await fetch(`${API_URL}/user-image`, {
+      method: 'POST',
+      headers: {
+        'x-user-id': userId
+      },
+      body: formData
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      uploadedImages.value = []
+      router.push('/profile')
+    } else {
+      alert('Ошибка при загрузке: ' + (data.message || 'Unknown error'))
+    }
+  } catch (error) {
+    console.error('Ошибка при отправке:', error)
+    alert('Произошла ошибка при отправке данных.')
+  }
+}
 </script>
