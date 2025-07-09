@@ -56,22 +56,47 @@ const uploadedImages = ref([])
 const fileInput = ref(null)
 
 function triggerFileInput() {
-  fileInput.value.click()
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
 }
 
 function handleFileUpload(event) {
-  const files = Array.from(event.target.files)
-  files.forEach((file) => {
+  const files = event.target.files
+  if (!files || files.length === 0) {
+    alert('Файл не выбран.')
+    return
+  }
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+
+    if (!file.type.startsWith('image/')) {
+      continue // skip non-images
+    }
+
     const reader = new FileReader()
+
     reader.onload = (e) => {
       uploadedImages.value.push({
         url: e.target.result,
         file: file,
       })
     }
+
+    reader.onerror = (err) => {
+      console.error('FileReader error:', err)
+      alert('Ошибка при чтении изображения.')
+    }
+
     reader.readAsDataURL(file)
-  })
-  event.target.value = ''
+  }
+
+  // Do not reset immediately — allow browser to handle it
+  // On some mobile browsers (Telegram webview especially), resetting too early breaks previews
+  setTimeout(() => {
+    event.target.value = ''
+  }, 100)
 }
 
 function removeImage(index) {
