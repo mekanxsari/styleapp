@@ -58,6 +58,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { API_URL } from '../api'
+import { useRouter } from 'vue-router'
 
 const userId = localStorage.getItem('user_id')
 const sizes = ['XS (42)', 'S (44)', 'M (46)', 'L (48)', 'XL (50)', 'XXL (52)']
@@ -121,7 +122,7 @@ async function onSubmit() {
 
     const data = await res.json()
     if (data.success) {
-      alert('Размеры успешно сохранены!')
+      router.push('/profile')
     } else {
       alert('Ошибка при сохранении: ' + data.message)
     }
