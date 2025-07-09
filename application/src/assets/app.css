@@ -1,13 +1,12 @@
-html,
-body {
-    overflow: scroll;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+html, body {
+  overflow: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 body {
@@ -970,13 +969,13 @@ li {
 }
 
 .profile-container>.profile-heading>.username {
-    font-size: 17px;
+    font-family: "Prata", serif;
+    font-size: 28px;
     font-weight: 300;
     width: 230px;
     margin-left: 9px;
     white-space: normal;
     overflow-wrap: anywhere;
-
 }
 
 .profile-container>.profile-heading>.title-page {
@@ -1141,7 +1140,7 @@ li {
     flex-direction: row;
 }
 
-.checkbox>input[type="checkbox"] {
+.checkbox > input[type="checkbox"] {
     accent-color: #8B7E74;
     width: 14px;
     height: 14px;
@@ -1149,7 +1148,7 @@ li {
     -webkit-tap-highlight-color: transparent;
 }
 
-.checkbox>label {
+.checkbox > label {
     font-size: 14px;
     font-weight: 300;
     color: #281E15;
