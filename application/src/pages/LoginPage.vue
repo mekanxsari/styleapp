@@ -7,7 +7,7 @@
         <img src="/images/logo.png" width="117px" height="104px" />
       </div>
 
-      <span class="text">
+      <span class="text" v-if="!requirePasscode">
         Пожалуйста, нажмите кнопку, чтобы получить доступ к приложению
       </span>
 
@@ -107,7 +107,7 @@ async function submitPasscode() {
   error.value = ''
 
   try {
-    const res = await fetch(`${API_URL}/auth/verify-passcode`, {
+    const res = await fetch(`${API_URL}/verify-passcode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
