@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_URL } from '../api'
 
@@ -56,9 +56,7 @@ const uploadedImages = ref([])
 const fileInput = ref(null)
 
 function triggerFileInput() {
-  if (fileInput.value) {
-    fileInput.value.click()
-  }
+  fileInput.value?.click()
 }
 
 function handleFileUpload(event) {
@@ -70,38 +68,35 @@ function handleFileUpload(event) {
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
+    if (!file.type.startsWith('image/')) continue
 
-    if (!file.type.startsWith('image/')) {
-      continue // skip non-images
-    }
+    const objectUrl = URL.createObjectURL(file)
 
-    const reader = new FileReader()
-
-    reader.onload = (e) => {
-      uploadedImages.value.push({
-        url: e.target.result,
-        file: file,
-      })
-    }
-
-    reader.onerror = (err) => {
-      console.error('FileReader error:', err)
-      alert('Ошибка при чтении изображения.')
-    }
-
-    reader.readAsDataURL(file)
+    uploadedImages.value.push({
+      url: objectUrl,
+      file: file,
+    })
   }
 
-  // Do not reset immediately — allow browser to handle it
-  // On some mobile browsers (Telegram webview especially), resetting too early breaks previews
+  // Delay resetting input for Telegram mobile browser compatibility
   setTimeout(() => {
     event.target.value = ''
   }, 100)
 }
 
 function removeImage(index) {
+  const image = uploadedImages.value[index]
+  if (image?.url) {
+    URL.revokeObjectURL(image.url)
+  }
   uploadedImages.value.splice(index, 1)
 }
+
+onUnmounted(() => {
+  uploadedImages.value.forEach((img) => {
+    URL.revokeObjectURL(img.url)
+  })
+})
 
 async function submitImages() {
   if (uploadedImages.value.length === 0) {
@@ -124,6 +119,7 @@ async function submitImages() {
       method: 'POST',
       headers: {
         'x-user-id': userId,
+        // Don't set Content-Type here — browser handles it for FormData
       },
       body: formData,
     })
@@ -131,6 +127,7 @@ async function submitImages() {
     const data = await response.json()
 
     if (response.ok && data.success) {
+      uploadedImages.value.forEach((img) => URL.revokeObjectURL(img.url))
       uploadedImages.value = []
       router.push('/profile')
     } else {
