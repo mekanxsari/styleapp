@@ -107,7 +107,7 @@ async function submitPasscode() {
   error.value = ''
 
   try {
-    const res = await fetch(`${API_URL}/verify-passcode`, {
+    const res = await fetch(`${API_URL}/auth/verify-passcode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
