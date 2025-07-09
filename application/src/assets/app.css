@@ -970,14 +970,13 @@ li {
 }
 
 .profile-container>.profile-heading>.username {
-    font-family: "Prata", serif;
-    font-size: 28px;
+    font-size: 17px;
     font-weight: 300;
     width: 230px;
     margin-left: 9px;
     white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
+
 }
 
 .profile-container>.profile-heading>.title-page {
@@ -986,7 +985,8 @@ li {
     width: 230px;
     margin-left: 9px;
     white-space: normal;
-    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .profile-container>.profile-heading>.spisok>a {
