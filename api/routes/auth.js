@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.post('/auth/verify-passcode', async (req, res) => {
+router.post('/verify-passcode', async (req, res) => {
   const { id, token, passcode } = req.body
 
   if (!id || !token || !passcode) {
