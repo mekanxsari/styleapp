@@ -100,50 +100,14 @@
               </button>
             </div>
             <div class="modal-body">
-              <div class="form-group">
-                <label>Изображение</label>
-                <div class="image-upload-container" id="itemImageUploadArea">
-                  <img id="itemPreview" src="" alt="Изображение" style="display: none;" />
-                  <div class="upload-overlay" id="add-img-overlay" style="opacity: 1;">
-                    <div class="text-center">
-                      <i class="fas fa-camera fa-2x mb-2"></i>
-                      <p>Нажмите для загрузки изображения</p>
-                    </div>
-                  </div>
-                </div>
-                <input type="file" id="itemImage" name="image" accept="image/*" style="display: none;" />
-              </div>
               <div class="form-row mb-2">
                 <div class="form-group col-md-6 mb-2">
                   <label>Название</label>
                   <input type="text" class="form-control" />
                 </div>
                 <div class="form-group col-md-6 mb-2">
-                  <label>Тип одежды</label>
-                  <select class="form-control" name="category" required>
-                    <option value="">Выберите тип</option>
-                    <option value="Верх">Верх</option>
-                    <option value="Низ">Низ</option>
-                    <option value="Верхняя одежда">Верхняя одежда</option>
-                    <option value="Обувь">Обувь</option>
-                    <option value="Аксессуар">Аксессуар</option>
-                  </select>
-                </div>
-                <div class="form-group col-md-12 mb-2">
-                  <label>Описание</label>
-                  <textarea class="form-control" name="description"></textarea>
-                </div>
-                <div class="form-group col-md-6 mb-2">
                   <label>Артикул</label>
                   <input type="text" class="form-control" name="artikul" />
-                </div>
-                <div class="form-group col-md-6 mb-3">
-                  <label>Название магазина</label>
-                  <input type="text" class="form-control" name="store_name" />
-                </div>
-                <div class="form-group col-md-12 mb-3">
-                  <label>Ссылка на магазин</label>
-                  <input type="url" class="form-control" name="store_url" pattern="https?://.+" />
                 </div>
               </div>
             </div>
@@ -170,101 +134,104 @@
             <div class="modal-body">
               <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Персональные данные</h5>
               <div class="form-row mt-3">
+
                 <div class="form-group col-md-6">
                   <label>Телеграм алиас</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.alias || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Код</label>
-                  <input type="text" class="form-control" value="" />
+                  <input type="text" class="form-control" :value="selectedUser?.passcode || ''" />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>ФИО</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.full_name || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Дата рождения</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.birth_date || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Город проживания</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.current_city || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Номер телефона</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.phone_number || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Email</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.email || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Профессия</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.profession || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
-                  <label>Семейное положение</label><br>
-                  <input class="form-check-input ml-2" type="radio" name="profession" value="option1" id="radio1" checked disabled>
+                  <label>Семейное положение</label><br />
+                  <input class="form-check-input ml-2" type="radio" name="marital_status" id="radio1" value="true"
+                    :checked="selectedUser?.marital_status === true" disabled />
                   <label class="form-check-label ml-4" for="radio1">Замужем</label>
-                  <input class="form-check-input ml-2" type="radio" name="profession" value="option2" id="radio2" disabled>
+                  <input class="form-check-input ml-2" type="radio" name="marital_status" id="radio2" value="false"
+                    :checked="selectedUser?.marital_status === false" disabled />
                   <label class="form-check-label ml-4" for="radio2">Не замужем</label>
                 </div>
-
               </div>
 
               <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Размеры</h5>
               <div class="form-row mt-3">
                 <div class="form-group col-md-6">
                   <label>Размер одежды верха</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.top_size || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Размер одежды низа</label>
-                    <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.bottom_size || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Размер обуви</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.shoe_size || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Особенности при выборе обуви</label>
-                  <textarea class="form-control" rows="3" placeholder="" disabled ></textarea>
+                  <textarea class="form-control" rows="3" disabled>{{ selectedUser?.shoe_description || '' }}</textarea>
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Рост</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.height || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Обхват груди</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.chest_circumference || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Окружность плеч</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.shoulder_circumference || ''"
+                    disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Обхват талии</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.waist_circumference || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Обхват бедер</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.hip_circumference || ''" disabled />
                 </div>
               </div>
 
@@ -272,62 +239,65 @@
               <div class="form-row mt-3">
                 <div class="form-group col-md-6">
                   <label>Цвет глаз</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.eye_color || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Цвет волос</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.hair_color || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Цель обращения к стилисту</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.aim_description || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Опыт работы со стилистом</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.experience_description || ''"
+                    disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Наиболее носимые элементы гардероба</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.wardrobe_description || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Характеристика себя клиентом</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.labels_description || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Желаемое впечатление от образа</label>
-                  <textarea class="form-control" rows="3" placeholder="" disabled ></textarea>
+                  <textarea class="form-control" rows="3"
+                    disabled>{{ Array.isArray(selectedUser?.impression_description) ? selectedUser.impression_description.join(', ') : (selectedUser?.impression_description || '') }}</textarea>
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Предпочитаемые бренды одежды</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.brand_description || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Любимые и подходящие цвета</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.colors_description || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Коррекция и акценты фигуры</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.body_description || ''" disabled />
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Образ жизни и привычки</label>
-                  <textarea class="form-control" rows="3" placeholder="" disabled ></textarea>
+                  <textarea class="form-control" rows="3"
+                    disabled>{{ selectedUser?.outfit_description && Array.isArray(selectedUser.outfit_description) ? selectedUser.outfit_description.join(', ') : (selectedUser?.outfit_description || '') }}</textarea>
                 </div>
 
                 <div class="form-group col-md-6">
                   <label>Бюджет на шоппинг</label>
-                  <input type="text" class="form-control" value="" disabled />
+                  <input type="text" class="form-control" :value="selectedUser?.budget_description || ''" disabled />
                 </div>
               </div>
 
@@ -338,96 +308,22 @@
                 </div>
               </div>
 
-              <div v-if="fullscreenImage" class="fullscreen-overlay" @click="closeFullscreen">
-                <img :src="fullscreenImage" alt="Полноэкранное фото" class="fullscreen-image" />
+              <div v-if="fullscreenImage" class="fullscreen-overlay" @click="closeFullscreen"
+                style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1050;">
+                <img :src="fullscreenImage" alt="Полноэкранное фото" class="fullscreen-image"
+                  style="max-width: 90%; max-height: 90%;" />
               </div>
-
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary" id="confirmEdit">Сохранить изменения</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                Отмена
+              </button>
+              <button type="button" class="btn btn-primary" @click="editPasscode(selectedUser)">
+                Сохранить изменения
+              </button>
             </div>
           </div>
         </form>
-      </div>
-    </div>
-
-    <!-- CREATE OUTFIT MODAL -->
-    <div class="modal fade" id="createOutfitModal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="createOutfitModalLabel">Создать новый образ</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form id="createOutfitForm">
-            <div class="modal-body">
-              <div class="form-group">
-                <label>Изображение</label>
-                <div class="image-upload-container" id="outfitImageUploadArea">
-                  <img id="outfitPreview" src="" alt="Изображение образа"
-                    style="display: none; height: 200px; width: auto;" />
-                  <div class="upload-overlay" style="opacity: 1;">
-                    <div class="text-center">
-                      <i class="fas fa-camera fa-2x mb-2"></i>
-                      <p>Нажмите для загрузки изображения</p>
-                    </div>
-                  </div>
-                </div>
-                <input type="file" id="outfitImage" accept="image/*" name="image" style="display: none;" />
-              </div>
-              <div class="form-row">
-                <div class="form-group col-md-12">
-                  <label for="outfitTitle">Название образа</label>
-                  <input type="text" class="form-control" id="outfitTitle" placeholder="Введите название образа" />
-                </div>
-
-                <div class="form-group col-md-6">
-                  <label>Категория</label>
-                  <select class="form-control" name="category" id="outfitCategory" required>
-                    <option value="">Выберите категорию</option>
-                    <option value="Романтический">Романтический</option>
-                    <option value="Повседневный">Повседневный</option>
-                    <option value="Кэжуал">Кэжуал</option>
-                    <option value="Спортивный">Спортивный</option>
-                    <option value="Элегантный">Элегантный</option>
-                    <option value="Пляж">Пляж</option>
-                    <option value="Коктейльный">Коктейльный</option>
-                    <option value="Минималистичный">Минималистичный</option>
-                  </select>
-
-                </div>
-
-                <div class="form-group col-md-6">
-                  <label>Сезон</label>
-                  <select class="form-control" name="season" id="outfitSeason" required>
-                    <option value="">Выберите сезон</option>
-                    <option value="Зима">Зима</option>
-                    <option value="Весна">Весна</option>
-                    <option value="Лето">Лето</option>
-                    <option value="Осень">Осень</option>
-                  </select>
-                </div>
-
-                <div class="form-group col-md-12">
-                  <label for="outfitDescription">Описание</label>
-                  <textarea class="form-control" id="outfitDescription" rows="3"
-                    placeholder="Введите описание образа"></textarea>
-                </div>
-              </div>
-
-              <hr />
-              <h5 class="mb-3">Выбранные одежды</h5>
-              <div class="row" id="selectedItemsPreview"></div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary" id="confirmCreateOutfit">Создать образ</button>
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   </div>
@@ -455,11 +351,14 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { API_URL } from '../api'
 
 const users = ref([])
 const errorMessage = ref('')
+const selectedUser = ref(null)
+const originalPasscode = ref('')
+const isPasscodeChanged = ref(false)
 
 async function fetchUsers() {
   try {
@@ -473,21 +372,61 @@ async function fetchUsers() {
   }
 }
 
+async function openshowModal(user) {
+  try {
+    const response = await fetch(`${API_URL}/stylist-users/single/view/${user.id}`)
+    if (!response.ok) throw new Error('Error fetching user details')
+    const data = await response.json()
+    selectedUser.value = { ...data }
+    originalPasscode.value = data.passcode || ''
+    isPasscodeChanged.value = false
+    $('#showModal').modal('show')
+  } catch (err) {
+    console.error('Error opening modal:', err)
+    errorMessage.value = 'Failed to load user details'
+  }
+}
+
 const images = ref([
   'https://randomwordgenerator.com/img/picture-generator/52e4d2464356af14f1dc8460962e33791c3ad6e04e5074417d2e72d6934cc5_640.jpg',
   'https://randomwordgenerator.com/img/picture-generator/54e7d64a4b53a914f1dc8460962e33791c3ad6e04e50744172297cdd9444cc_640.jpg',
   'https://randomwordgenerator.com/img/picture-generator/5ee2d3424a57b10ff3d8992cc12c30771037dbf85254794e722679d7934d_640.jpg',
-  'https://randomwordgenerator.com/img/picture-generator/55e2d6474950af14f1dc8460962e33791c3ad6e04e507441722872d69049cc_640.jpg',
+  'https://randomwordgenerator.com/img/picture-generator/55e2d6474950af14f1dc8460962e33791c3ad6e04e507441722872d69049cc_640.jpg'
 ])
 
 const fullscreenImage = ref(null)
-
 function openFullscreen(img) {
   fullscreenImage.value = img
 }
-
 function closeFullscreen() {
   fullscreenImage.value = null
+}
+
+watch(
+  () => selectedUser.value?.passcode,
+  (newVal) => {
+    isPasscodeChanged.value = newVal !== originalPasscode.value
+  }
+)
+
+async function editPasscode(user) {
+  if (!isPasscodeChanged.value || !user?.id) return
+
+  try {
+    const response = await fetch(`${API_URL}/stylist-users/single/update-passcode/${user.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: user.passcode })
+    })
+
+    if (!response.ok) throw new Error('Failed to update passcode')
+    $('#editSuccess').fadeIn().delay(2000).fadeOut()
+    isPasscodeChanged.value = false
+    originalPasscode.value = user.passcode
+  } catch (err) {
+    console.error('Passcode update error:', err)
+    errorMessage.value = 'Ошибка при сохранении кода'
+  }
 }
 
 onMounted(() => {

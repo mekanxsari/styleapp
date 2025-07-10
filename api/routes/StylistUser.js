@@ -45,4 +45,37 @@ router.get('/single/view/:id', async (req, res) => {
   }
 });
 
+router.put('/single/update-passcode/:id', async (req, res) => {
+  const userId = req.params.id;
+  const { passcode } = req.body;
+
+  if (!passcode) {
+    return res.status(400).json({ message: 'Passcode is required' });
+  }
+
+  try {
+    const query = `
+      UPDATE users
+      SET passcode = $1
+      WHERE id = $2
+      RETURNING id, passcode
+    `;
+
+    const result = await pool.query(query, [passcode, userId]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      message: 'Passcode updated successfully',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Database update error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 module.exports = router;
