@@ -40,7 +40,6 @@
           <table class="table table-bordered table-striped mb-0">
             <thead>
               <tr>
-                <th style="width: 20px;"></th>
                 <th>ID</th>
                 <th>Изображение</th>
                 <th>Название</th>
@@ -52,10 +51,6 @@
             </thead>
             <tbody>
               <tr v-for="item in items" :key="item.id" :data-id="item.id">
-                <td>
-                  <input type="checkbox" class="select-checkbox" :data-id="item.id" v-model="selectedIds"
-                    :value="item.id.toString()" />
-                </td>
                 <td>{{ item.id }}</td>
                 <td>
                   <img :src="SITE_URL + '/app-images/' + item.image_url" :alt="item.title"

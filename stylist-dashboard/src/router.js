@@ -6,13 +6,15 @@ import OutfitsPage from './pages/OutfitsPage.vue';
 import CapsulesPage from './pages/CapsulesPage.vue';
 import PasswordChangePage from './pages/PasswordChangePage.vue';
 import LoginPage from './pages/LoginPage.vue';
+import UsersPage from './pages/UsersPage.vue';
 
 const routes = [
   { path: '/', component: ClothesPage },
   { path: '/outfits', component: OutfitsPage },
   { path: '/capsules', component: CapsulesPage },
   { path: '/change-password', component: PasswordChangePage },
-  { path: '/login', component: LoginPage }
+  { path: '/login', component: LoginPage },
+  { path: '/users', component: UsersPage }
 ];
 
 export const router = createRouter({
