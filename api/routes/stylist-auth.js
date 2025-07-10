@@ -60,4 +60,39 @@ router.post("/check-session", async (req, res) => {
   }
 });
 
+router.post('/change-password', async (req, res) => {
+  const { user_id, token, currentPassword, newPassword } = req.body;
+
+  if (!user_id || !token || !currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, reason: "Missing parameters" });
+  }
+
+  try {
+    const sessionResult = await pool.query(`
+      SELECT * FROM admin
+      WHERE id = $1 AND session_token = $2 AND session_expires_at > NOW()
+    `, [user_id, token]);
+
+    if (sessionResult.rowCount === 0) {
+      return res.status(401).json({ success: false, reason: "Invalid or expired session" });
+    }
+
+    const user = sessionResult.rows[0];
+
+    if (currentPassword !== user.password) {
+      return res.status(401).json({ success: false, reason: "Current password is incorrect" });
+    }
+
+    await pool.query(
+      "UPDATE admin SET password = $1 WHERE id = $2",
+      [newPassword, user_id]
+    );
+
+    res.json({ success: true, message: "Password changed successfully" });
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ success: false, reason: 'Database error' });
+  }
+});
+
 module.exports = router;

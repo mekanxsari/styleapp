@@ -38,52 +38,38 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { API_URL } from '../api';
 
-export default {
-  data() {
-    return {
-      username: '',
-      password: '',
-      showError: false
-    };
-  },
-  methods: {
-    async handleLogin() {
-      try {
-        const response = await fetch(`${API_URL}/stylist-auth/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: this.username,
-            password: this.password
-          })
-        });
+const username = ref('');
+const password = ref('');
+const showError = ref(false);
+const router = useRouter();
 
-        const data = await response.json();
+async function handleLogin() {
+  try {
+    const response = await fetch(`${API_URL}/stylist-auth/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username.value, password: password.value }),
+    });
 
-        if (response.ok && data.success) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user_id', data.id);
+    const data = await response.json();
 
-          this.$router.push('/');
-        } else {
-          this.showError = true;
-          setTimeout(() => {
-            this.showError = false;
-          }, 3000);
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        this.showError = true;
-        setTimeout(() => {
-          this.showError = false;
-        }, 3000);
-      }
+    if (response.ok && data.success) {
+      localStorage.setItem('session_token', data.token);
+      localStorage.setItem('user_id', data.id);
+      router.push('/');
+    } else {
+      showError.value = true;
+      setTimeout(() => { showError.value = false; }, 3000);
     }
+  } catch (error) {
+    console.error('Login error:', error);
+    showError.value = true;
+    setTimeout(() => { showError.value = false; }, 3000);
   }
-};
+}
 </script>

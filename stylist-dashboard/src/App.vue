@@ -7,15 +7,28 @@
 
 <script setup>
 import { useHead } from '@vueuse/head'
-import { onMounted } from 'vue'
+import { watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 
 const route = useRoute();
 
+function updateBodyClasses() {
+  if (route.path === '/login') {
+    document.body.classList.add('login-page');
+  } else {
+    document.body.classList.remove('login-page');
+  }
+}
+
 onMounted(() => {
-  document.body.classList.add('hold-transition', 'sidebar-mini', 'login-page')
-})
+  updateBodyClasses();
+});
+
+watch(() => route.path, () => {
+  updateBodyClasses();
+});
+
 
 useHead({
   title: 'Stylist Dashboard',
