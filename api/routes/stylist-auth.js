@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require("uuid");
-const bcrypt = require('bcrypt');
 const pool = require('../db');
 
 router.post('/', async (req, res) => {
   const { username, password } = req.body;
-  bcrypt.hash('admin1234', 10).then(console.log);
   if (!username || !password) {
     return res.status(400).json({ success: false, reason: "Missing username or password" });
   }
@@ -18,9 +16,8 @@ router.post('/', async (req, res) => {
     if (!user) {
       return res.status(401).json({ success: false, reason: "Invalid username" });
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    
+    if (password !== user.password) {
       return res.status(401).json({ success: false, reason: "Invalid password" });
     }
 
