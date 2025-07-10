@@ -6,7 +6,7 @@ const pool = require('../db');
 
 router.post('/', async (req, res) => {
   const { username, password } = req.body;
-
+  bcrypt.hash('admin1234', 10).then(console.log);
   if (!username || !password) {
     return res.status(400).json({ success: false, reason: "Missing username or password" });
   }

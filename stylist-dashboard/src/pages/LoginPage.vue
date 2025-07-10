@@ -52,7 +52,7 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        const response = await fetch(`${API_URL}/stylist-auth`, {
+        const response = await fetch(`${API_URL}/stylist-auth/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
