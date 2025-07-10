@@ -14,6 +14,9 @@
         <li class="nav-item mx-2">
           <router-link to="/capsules" class="nav-link" active-class="active">Капсулы</router-link>
         </li>
+        <li class="nav-item mx-2">
+          <router-link to="/users" class="nav-link" active-class="active">Пользователи</router-link>
+        </li>
         <li class="nav-item dropdown ml-3">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown" role="button"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

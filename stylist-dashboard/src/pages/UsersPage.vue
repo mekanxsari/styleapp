@@ -6,11 +6,10 @@
           <div class="d-flex justify-content-between align-items-center flex-wrap">
             <form class="form-inline mb-2 mb-md-0" style="flex: 1 1 auto;">
               <div class="input-group mr-2 mb-2">
-                <input v-model="searchText" type="text" class="form-control search" placeholder="Поиск..."
-                  aria-label="Поиск" />
+                <input type="text" class="form-control search" placeholder="Поиск..." aria-label="Поиск" />
               </div>
               <div class="form-group mr-2 mb-2">
-                <select v-model="searchField" class="form-control search-select">
+                <select class="form-control search-select">
                   <option value="">Все</option>
                   <option value="id">ID</option>
                   <option value="title">Название</option>
@@ -23,13 +22,9 @@
               <button type="button" class="btn btn-secondary mb-2 ml-2" @click="clearSearch">Сбросить</button>
 
             </form>
-            <button class="btn btn-success ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
-              data-target="#addModal">
-              <i class="fas fa-plus"></i> Добавить одежда
-            </button>
             <button class="btn btn-primary ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
-              data-target="#createOutfitModal" :disabled="selectedIds.length < 3">
-              <i class="fas fa-plus-circle"></i> Создать образ
+              data-target="#createOutfitModal">
+              <i class="fas fa-plus-circle"></i> Добавить пользователь
             </button>
           </div>
         </div>
@@ -41,33 +36,25 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Изображение</th>
-                <th>Название</th>
-                <th>Тип</th>
-                <th>Артикул</th>
-                <th>Ссылка на магазин</th>
-                <th>Действия</th>
+                <th>Телеграм алиас</th>
+                <th>ФИО</th>
+                <th>Город проживания</th>
+                <th>Клиент?</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in items" :key="item.id" :data-id="item.id">
-                <td>{{ item.id }}</td>
+              <tr v-for="user in users" :key="user.id" :data-id="user.id">
+                <td>{{ user.id }}</td>
+                <td>{{ user.alias }}</td>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.current_city }}</td>
+                <td>{{ user.passcode && user.passcode.trim() !== '' ? 'Да' : 'Нет' }}</td>
                 <td>
-                  <img :src="SITE_URL + '/app-images/' + item.image_url" :alt="item.title"
-                    style="width: 150px; height: 150px;" />
-                </td>
-                <td>{{ item.title }}</td>
-                <td>{{ item.category }}</td>
-                <td>{{ item.artikul }}</td>
-                <td>
-                  <a :href="item.store_url" target="_blank">{{ item.store_name }}</a>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-warning mr-1" data-toggle="modal" data-target="#editModal"
-                    @click="openEditModal(item)">
-                    <i class="fas fa-edit"></i>
+                  <button class="btn btn-sm btn-warning mr-1" data-toggle="modal" data-target="#showModal"
+                    @click="openshowModal(user)">
+                    <i class="fas fa-eye"></i>
                   </button>
-                  <button class="btn btn-sm btn-danger btn-delete" @click="prepareDelete(item.id)">
+                  <button class="btn btn-sm btn-danger btn-delete" @click="prepareDelete(user.id)">
                     <i class="fas fa-trash"></i>
                   </button>
                 </td>
@@ -129,7 +116,7 @@
               <div class="form-row mb-2">
                 <div class="form-group col-md-6 mb-2">
                   <label>Название</label>
-                  <input type="text" class="form-control" name="title" required />
+                  <input type="text" class="form-control" />
                 </div>
                 <div class="form-group col-md-6 mb-2">
                   <label>Тип одежды</label>
@@ -169,72 +156,192 @@
       </div>
     </div>
 
-    <!-- EDIT ITEM MODAL -->
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- SHOW USER INFORMATION MODAL -->
+    <div class="modal fade" id="showModal" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">
         <form id="editForm">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Редактировать одежда</h5>
+              <h5 class="modal-title">Информация о пользователе</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body">
-              <div class="form-group">
-                <label>Изображение</label>
-                <div class="image-upload-container mb-3">
-                  <img src="" id="editImagePreview" class="img-fluid" alt="Текущее изображение"
-                    style="max-height: 300px; width: auto; display: block; margin: 0 auto;" />
-                  <div class="upload-overlay">
-                    <div class="text-center text-white">
-                      <i class="fas fa-camera fa-2x mb-2"></i>
-                      <p>Нажмите для изменения изображения</p>
-                    </div>
-                  </div>
-                </div>
-                <input type="file" id="editImageInput" accept="image/*" style="display: none;" />
-              </div>
-
-              <div class="form-row">
+              <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Персональные данные</h5>
+              <div class="form-row mt-3">
                 <div class="form-group col-md-6">
-                  <label>Название</label>
-                  <input type="text" class="form-control" value="Платье летнее" name="title" required />
+                  <label>Телеграм алиас</label>
+                  <input type="text" class="form-control" value="" disabled />
                 </div>
+
                 <div class="form-group col-md-6">
-                  <label>Тип одежды</label>
-                  <select class="form-control" name="category" required>
-                    <option value="">Выберите тип</option>
-                    <option value="Верх">Верх</option>
-                    <option value="Низ">Низ</option>
-                    <option value="Верхняя одежда">Верхняя одежда</option>
-                    <option value="Обувь">Обувь</option>
-                    <option value="Аксессуар">Аксессуар</option>
-                  </select>
-
+                  <label>Код</label>
+                  <input type="text" class="form-control" value="" />
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label>Описание</label>
-                <textarea class="form-control" rows="3" name="description"></textarea>
-              </div>
-
-              <div class="form-row">
                 <div class="form-group col-md-6">
-                  <label>Артикул</label>
-                  <input type="text" class="form-control" value="" name="artikul" />
+                  <label>ФИО</label>
+                  <input type="text" class="form-control" value="" disabled />
                 </div>
+
                 <div class="form-group col-md-6">
-                  <label>Магазин</label>
-                  <input type="text" class="form-control" value="" name="store_name" />
+                  <label>Дата рождения</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Город проживания</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Номер телефона</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Email</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Профессия</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Семейное положение</label><br>
+                  <input class="form-check-input ml-2" type="radio" name="profession" value="option1" id="radio1" checked disabled>
+                  <label class="form-check-label ml-4" for="radio1">Замужем</label>
+                  <input class="form-check-input ml-2" type="radio" name="profession" value="option2" id="radio2" disabled>
+                  <label class="form-check-label ml-4" for="radio2">Не замужем</label>
+                </div>
+
+              </div>
+
+              <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Размеры</h5>
+              <div class="form-row mt-3">
+                <div class="form-group col-md-6">
+                  <label>Размер одежды верха</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Размер одежды низа</label>
+                    <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Размер обуви</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Особенности при выборе обуви</label>
+                  <textarea class="form-control" rows="3" placeholder="" disabled ></textarea>
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Рост</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Обхват груди</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Окружность плеч</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Обхват талии</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Обхват бедер</label>
+                  <input type="text" class="form-control" value="" disabled />
                 </div>
               </div>
 
-              <div class="form-group">
-                <label>Ссылка на магазин</label>
-                <input type="url" class="form-control" value="" name="store_url" pattern="https?://.+" />
+              <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Дополнительные вопросы</h5>
+              <div class="form-row mt-3">
+                <div class="form-group col-md-6">
+                  <label>Цвет глаз</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Цвет волос</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Цель обращения к стилисту</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Опыт работы со стилистом</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Наиболее носимые элементы гардероба</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Характеристика себя клиентом</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Желаемое впечатление от образа</label>
+                  <textarea class="form-control" rows="3" placeholder="" disabled ></textarea>
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Предпочитаемые бренды одежды</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Любимые и подходящие цвета</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Коррекция и акценты фигуры</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Образ жизни и привычки</label>
+                  <textarea class="form-control" rows="3" placeholder="" disabled ></textarea>
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label>Бюджет на шоппинг</label>
+                  <input type="text" class="form-control" value="" disabled />
+                </div>
               </div>
+
+              <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Фотографии</h5>
+              <div class="form-row mt-3">
+                <div v-for="(img, index) in images" :key="index" class="col-md-3 mb-3">
+                  <img :src="img" alt="Фото" class="img-thumbnail preview-image" @click="openFullscreen(img)" />
+                </div>
+              </div>
+
+              <div v-if="fullscreenImage" class="fullscreen-overlay" @click="closeFullscreen">
+                <img :src="fullscreenImage" alt="Полноэкранное фото" class="fullscreen-image" />
+              </div>
+
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
@@ -274,8 +381,7 @@
               <div class="form-row">
                 <div class="form-group col-md-12">
                   <label for="outfitTitle">Название образа</label>
-                  <input type="text" class="form-control" id="outfitTitle" placeholder="Введите название образа"
-                    required />
+                  <input type="text" class="form-control" id="outfitTitle" placeholder="Введите название образа" />
                 </div>
 
                 <div class="form-group col-md-6">
@@ -348,518 +454,43 @@
     Образ успешно создан!
   </div>
 </template>
-<script>
-import { API_URL, SITE_URL } from '../api'
-
-export default {
-  data() {
-    return {
-      items: [],
-      selectedIds: [],
-      SITE_URL,
-      page: 1,
-      isLoading: false,
-      allLoaded: false,
-      itemIdToDelete: null,
-      itemIdToEdit: null,
-      searchText: '',
-      searchField: '',
-    };
-  },
-  methods: {
-    isValidUrl(string) {
-      try {
-        new URL(string);
-        return true;
-      } catch (err) {
-        return false;
-      }
-    },
-
-    async fetchClothes(reset = false) {
-      if (this.isLoading || this.allLoaded) return;
-
-      if (reset) {
-        this.items = [];
-        this.page = 1;
-        this.allLoaded = false;
-      }
-
-      this.isLoading = true;
-      try {
-        const params = new URLSearchParams({
-          page: this.page.toString(),
-        });
-
-        if (this.searchText) {
-          params.append('q', this.searchText);
-          if (this.searchField) {
-            params.append('field', this.searchField);
-          }
-        }
-
-        const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
-        if (!response.ok) throw new Error('Failed to fetch clothes');
-
-        const data = await response.json();
-
-        if (data.length === 0) {
-          this.allLoaded = true;
-        } else {
-          if (reset) {
-            this.items = data;
-          } else {
-            this.items.push(...data);
-          }
-          this.page += 1;
-        }
-      } catch (error) {
-        console.error('Error fetching clothes:', error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    handleScroll() {
-      const scrollY = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      const fullHeight = document.body.offsetHeight;
-      if (scrollY + viewportHeight >= fullHeight - 300) {
-        this.fetchClothes();
-      }
-    },
-
-    prepareDelete(id) {
-      this.itemIdToDelete = id;
-      $('#deleteModal').modal('show');
-    },
-
-    async confirmDelete() {
-      if (!this.itemIdToDelete) return;
-      try {
-        const response = await fetch(`${API_URL}/stylist-cloth/${this.itemIdToDelete}`, {
-          method: 'DELETE',
-        });
-        if (!response.ok) throw new Error('Failed to delete');
-        $('#deleteModal').modal('hide');
-        this.items = this.items.filter(item => item.id !== this.itemIdToDelete);
-        this.itemIdToDelete = null;
-        const alert = document.getElementById('deleteSuccess');
-        alert.style.display = 'block';
-        setTimeout(() => {
-          alert.style.display = 'none';
-        }, 2000);
-      } catch (error) {
-        console.error('Error deleting item:', error);
-      }
-    },
-
-    async openEditModal(item) {
-      this.itemIdToEdit = item.id;
-      try {
-        const response = await fetch(`${API_URL}/stylist-cloth/${item.id}`);
-        if (!response.ok) throw new Error('Failed to fetch item for editing');
-        const data = await response.json();
-
-        const form = document.getElementById('editForm');
-        form.elements.title.value = data.title || '';
-        form.elements.category.value = data.category || '';
-        form.elements.description.value = data.description || '';
-        form.elements.artikul.value = data.artikul || '';
-        form.elements.store_name.value = data.store_name || '';
-        form.elements.store_url.value = data.store_url || '';
-        document.getElementById('editImagePreview').src = SITE_URL + '/app-images/' + data.image_url;
-
-        $('#editModal').modal('show');
-      } catch (error) {
-        console.error('Error loading item for edit:', error);
-      }
-    },
-
-    async confirmEdit() {
-      const form = document.getElementById('editForm');
-      const formData = new FormData();
-
-      const id = this.itemIdToEdit;
-      if (!id) return;
-
-      const title = form.elements.title.value.trim();
-      const description = form.elements.description.value.trim();
-      const category = form.elements.category.value.trim();
-      const artikul = form.elements.artikul.value.trim();
-      const store_name = form.elements.store_name.value.trim();
-      const store_url = form.elements.store_url.value.trim();
-
-      if (!title || !description || !category || !artikul || !store_name || !store_url) {
-        alert("Пожалуйста, заполните все поля.");
-        return;
-      }
-
-      if (!this.isValidUrl(store_url)) {
-        alert("Пожалуйста, введите корректный URL магазина (например: https://example.com)");
-        return;
-      }
-
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('category', category);
-      formData.append('artikul', artikul);
-      formData.append('store_name', store_name);
-      formData.append('store_url', store_url);
-
-      const imageFile = document.getElementById('editImageInput')?.files?.[0];
-
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
-
-      try {
-        console.log('Sending PUT request to update item with id:', id);
-
-        const response = await fetch(`${API_URL}/stylist-cloth/${id}`, {
-          method: 'PUT',
-          body: formData,
-        });
-
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Response error text:', errorText);
-          throw new Error('Failed to save changes');
-        }
-
-        const updated = await response.json();
-        console.log('Updated item received from server:', updated);
-
-        const index = this.items.findIndex(item => item.id === id);
-        if (index !== -1) this.items.splice(index, 1, updated);
-
-        $('#editModal').modal('hide');
-        const alert = document.getElementById('editSuccess');
-        alert.style.display = 'block';
-        setTimeout(() => {
-          alert.style.display = 'none';
-        }, 2000);
-      } catch (error) {
-        console.error('Error saving item:', error);
-        alert('Ошибка при сохранении!');
-      }
-    },
-
-    async confirmAdd() {
-      const form = document.getElementById('addForm');
-      const formData = new FormData();
-
-      const imageFile = document.getElementById('itemImage')?.files?.[0];
-      if (!imageFile) {
-        alert('Пожалуйста, выберите изображение!');
-        return;
-      }
-
-      const title = form.elements.title.value.trim();
-      const description = form.elements.description.value.trim();
-      const category = form.elements.category.value.trim();
-      const artikul = form.elements.artikul.value.trim();
-      const store_name = form.elements.store_name.value.trim();
-      const store_url = form.elements.store_url.value.trim();
-
-      if (!title || !description || !category || !artikul || !store_name || !store_url) {
-        alert("Пожалуйста, заполните все поля.");
-        return;
-      }
-
-      if (!this.isValidUrl(store_url)) {
-        alert("Пожалуйста, введите корректный URL магазина (например: https://example.com)");
-        return;
-      }
-
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('category', category);
-      formData.append('artikul', artikul);
-      formData.append('store_name', store_name);
-      formData.append('store_url', store_url);
-      formData.append('image', imageFile);
-
-      try {
-        const response = await fetch(`${API_URL}/stylist-cloth/`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Ошибка при добавлении одежды:', errorText);
-          throw new Error('Ошибка при добавлении одежды');
-        }
-
-        const newItem = await response.json();
-        this.items.unshift(newItem);
-
-        $('#addModal').modal('hide');
-        form.reset();
-        document.getElementById('itemPreview').style.display = 'none';
-
-        const alert = document.getElementById('editSuccess');
-        alert.textContent = 'Одежда успешно добавлена!';
-        alert.style.display = 'block';
-        setTimeout(() => {
-          alert.style.display = 'none';
-        }, 2000);
-      } catch (error) {
-        console.error('Ошибка при добавлении:', error);
-        alert('Ошибка при добавлении!');
-      }
-    },
-    updateSelectedItemsPreview() {
-      const container = document.getElementById('selectedItemsPreview');
-      container.innerHTML = '';
-
-      const selected = this.items.filter(item => this.selectedIds.includes(item.id.toString()));
-
-      selected.forEach(item => {
-        const col = document.createElement('div');
-        col.className = 'col-md-4';
-        col.dataset.id = item.id;
-
-        col.innerHTML = `
-      <div class="card mb-3">
-        <img src="${this.SITE_URL}/app-images/${item.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.title}">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <span class="item-title">${item.title}</span>
-          <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${item.id}">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
-    `;
-        container.appendChild(col);
-      });
-
-      container.querySelectorAll('.remove-selected').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.currentTarget.getAttribute('data-id');
-          this.selectedIds = this.selectedIds.filter(selectedId => selectedId !== id);
-
-          const checkbox = document.querySelector(`input.select-checkbox[data-id="${id}"]`);
-          if (checkbox) checkbox.checked = false;
-
-          this.updateSelectedItemsPreview();
-        });
-      });
-    },
-    async confirmCreateOutfit() {
-      const form = document.getElementById('createOutfitForm');
-      const formData = new FormData();
-
-      const image = document.getElementById('outfitImage')?.files?.[0];
-      const title = document.getElementById('outfitTitle').value.trim();
-      const description = document.getElementById('outfitDescription').value.trim();
-      const category = document.getElementById('outfitCategory').value;
-      const season = document.getElementById('outfitSeason').value;
-
-      if (!image || !title || !category || !season) {
-        alert("Пожалуйста, заполните все поля и выберите изображение.");
-        return;
-      }
-
-      if (this.selectedIds.length < 3) {
-        alert("Необходимо выбрать минимум 3 одежды для создания образа.");
-        return;
-      }
-
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('category', category);
-      formData.append('season', season);
-      formData.append('image', image);
-
-      this.selectedIds.forEach(id => formData.append('clothesIds[]', id));
-
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-
-      try {
-        const response = await fetch(`${API_URL}/stylist-outfit/`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) throw new Error('Ошибка при создании образа');
-
-        $('#createOutfitModal').modal('hide');
-        this.selectedIds = [];
-        document.getElementById('createOutfitSuccess').style.display = 'block';
-        setTimeout(() => {
-          document.getElementById('createOutfitSuccess').style.display = 'none';
-        }, 2000);
-      } catch (error) {
-        console.error('Create outfit error:', error);
-        alert('Ошибка при создании образа');
-      }
-    },
-    async fetchClothes(reset = false) {
-      if (this.isLoading || this.allLoaded) return;
-
-      if (reset) {
-        this.items = [];
-        this.page = 1;
-        this.allLoaded = false;
-      }
-
-      this.isLoading = true;
-      try {
-        const params = new URLSearchParams({
-          page: this.page.toString(),
-        });
-
-        if (this.searchText && this.searchField) {
-          params.append('q', this.searchText);
-          params.append('field', this.searchField);
-        }
-
-        const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
-        if (!response.ok) throw new Error('Failed to fetch clothes');
-        const data = await response.json();
-
-        if (data.length === 0) {
-          this.allLoaded = true;
-        } else {
-          if (reset) {
-            this.items = data;
-          } else {
-            this.items.push(...data);
-          }
-          this.page += 1;
-        }
-
-      } catch (error) {
-        console.error('Error fetching clothes:', error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    handleSearch() {
-      this.fetchClothes(true);
-    },
-    clearSearch() {
-      this.searchText = '';
-      this.searchField = '';
-      this.fetchClothes(true);
-    },
-  },
-  mounted() {
-    this.fetchClothes();
-    window.addEventListener('scroll', this.handleScroll);
-
-    document.getElementById('confirmDelete').onclick = () => {
-      this.confirmDelete();
-    };
-
-    document.getElementById('confirmEdit').onclick = () => {
-      this.confirmEdit();
-    };
-
-    const overlay = document.querySelector('#editModal .upload-overlay');
-    const fileInput = document.getElementById('editImageInput');
-
-    if (overlay && fileInput) {
-      overlay.addEventListener('click', () => {
-        fileInput.click();
-      });
-    }
-
-    if (fileInput) {
-      fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            document.getElementById('editImagePreview').src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-
-    document.getElementById('confirmAdd').onclick = () => {
-      this.confirmAdd();
-    };
-
-    const addOverlay = document.querySelector('#addModal .upload-overlay');
-    const addFileInput = document.getElementById('itemImage');
-
-    if (addOverlay && addFileInput) {
-      addOverlay.addEventListener('click', () => {
-        addFileInput.click();
-      });
-    }
-
-    if (addFileInput) {
-      addFileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const preview = document.getElementById('itemPreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            addOverlay.removeAttribute('style');
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-
-    $('#createOutfitModal').on('show.bs.modal', () => {
-      this.updateSelectedItemsPreview();
-    });
-
-    document.getElementById('confirmCreateOutfit').onclick = () => {
-      this.confirmCreateOutfit();
-    };
-
-    const createOverlay = document.querySelector('#createOutfitModal .upload-overlay');
-    const createFileInput = document.getElementById('outfitImage');
-
-    if (createOverlay && createFileInput) {
-      createOverlay.addEventListener('click', () => {
-        createFileInput.click();
-      });
-    }
-
-    if (createFileInput) {
-      createFileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const preview = document.getElementById('outfitPreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            createOverlay.style.display = 'none';
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-
-    const Eoverlay = document.querySelector('#editModal .upload-overlay');
-    const EfileInput = document.getElementById('editImageInput');
-
-    if (Eoverlay && EfileInput) {
-      Eoverlay.addEventListener('click', () => {
-        EfileInput.click();
-      });
-    }
-
-  },
-  beforeDestroy() {
-    window.removeEventListener('scroll', this.handleScroll);
+<script setup>
+import { ref, onMounted } from 'vue'
+import { API_URL } from '../api'
+
+const users = ref([])
+const errorMessage = ref('')
+
+async function fetchUsers() {
+  try {
+    const response = await fetch(`${API_URL}/stylist-users`)
+    if (!response.ok) throw new Error('Ошибка при загрузке пользователей.')
+    const data = await response.json()
+    users.value = data
+  } catch (err) {
+    console.error('Fetch error:', err)
+    errorMessage.value = 'Не удалось загрузить пользователей.'
   }
-};
+}
+
+const images = ref([
+  'https://randomwordgenerator.com/img/picture-generator/52e4d2464356af14f1dc8460962e33791c3ad6e04e5074417d2e72d6934cc5_640.jpg',
+  'https://randomwordgenerator.com/img/picture-generator/54e7d64a4b53a914f1dc8460962e33791c3ad6e04e50744172297cdd9444cc_640.jpg',
+  'https://randomwordgenerator.com/img/picture-generator/5ee2d3424a57b10ff3d8992cc12c30771037dbf85254794e722679d7934d_640.jpg',
+  'https://randomwordgenerator.com/img/picture-generator/55e2d6474950af14f1dc8460962e33791c3ad6e04e507441722872d69049cc_640.jpg',
+])
+
+const fullscreenImage = ref(null)
+
+function openFullscreen(img) {
+  fullscreenImage.value = img
+}
+
+function closeFullscreen() {
+  fullscreenImage.value = null
+}
+
+onMounted(() => {
+  fetchUsers()
+})
 </script>
