@@ -81,6 +81,13 @@ async function handleChangePassword() {
     return;
   }
 
+  console.log('🔍 Sending to change-password:', {
+  user_id,
+  token,
+  currentPassword: currentPassword.value,
+  newPassword: newPassword.value
+});
+
   try {
     const response = await fetch(`${API_URL}/stylist-auth/change-password`, {
       method: 'POST',
