@@ -58,7 +58,7 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            alias: this.username,
+            username: this.username,
             password: this.password
           })
         });

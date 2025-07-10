@@ -5,14 +5,14 @@ const bcrypt = require('bcrypt');
 const pool = require('../db');
 
 router.post('/', async (req, res) => {
-  const { alias, password } = req.body;
+  const { username, password } = req.body;
 
-  if (!alias || !password) {
+  if (!username || !password) {
     return res.status(400).json({ success: false, reason: "Missing username or password" });
   }
 
   try {
-    const result = await pool.query("SELECT * FROM admin WHERE username = $1", [alias]);
+    const result = await pool.query("SELECT * FROM admin WHERE username = $1", [username]);
     const user = result.rows[0];
 
     if (!user) {
@@ -62,6 +62,5 @@ router.post("/check-session", async (req, res) => {
     res.status(500).json({ valid: false, reason: 'Database error' });
   }
 });
-
 
 module.exports = router;
