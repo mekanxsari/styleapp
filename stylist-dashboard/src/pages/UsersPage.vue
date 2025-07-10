@@ -81,7 +81,7 @@
             <p>Это действие нельзя отменить. Все данные будут удалены безвозвратно.</p>
             <div class="delete-confirm-buttons mt-4">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-danger" id="confirmDelete">Удалить</button>
+              <button type="button" class="btn btn-danger" @click="confirmDelete">Удалить</button>
             </div>
           </div>
         </div>
@@ -371,8 +371,8 @@ const originalPasscode = ref('')
 const isPasscodeChanged = ref(false)
 const errorMessage = ref('')
 const fullscreenImage = ref(null)
-
 const newUser = ref({ alias: '', passcode: '' })
+const deleteUserId = ref(null)
 
 const isAddDisabled = computed(() => {
   return newUser.value.alias.trim() === '' || newUser.value.passcode.trim() === ''
@@ -467,6 +467,32 @@ function openFullscreen(img) {
 
 function closeFullscreen() {
   fullscreenImage.value = null
+}
+
+function prepareDelete(id) {
+  deleteUserId.value = id
+  $('#deleteModal').modal('show')
+}
+
+async function confirmDelete() {
+  if (!deleteUserId.value) return
+
+  try {
+    const response = await fetch(`${API_URL}/stylist-users/delete/${deleteUserId.value}`, {
+      method: 'DELETE'
+    })
+
+    if (!response.ok) throw new Error('Ошибка при удалении пользователя')
+
+    $('#deleteModal').modal('hide')
+    $('#deleteSuccess').fadeIn().delay(2000).fadeOut()
+
+    await fetchUsers()
+    deleteUserId.value = null
+  } catch (err) {
+    console.error('Ошибка при удалении:', err)
+    errorMessage.value = 'Не удалось удалить пользователя'
+  }
 }
 
 onMounted(() => {
