@@ -38,24 +38,46 @@
     </div>
   </div>
 </template>
-
 <script>
+import { API_URL } from '../api';
+
 export default {
   data() {
     return {
-      username: 'admin',
-      password: '123',
+      username: '',
+      password: '',
       showError: false
     };
   },
   methods: {
-    handleLogin() {
-      const correctUsername = 'admin';
-      const correctPassword = '1234';
+    async handleLogin() {
+      try {
+        const response = await fetch(`${API_URL}/stylist-auth`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            alias: this.username,
+            password: this.password
+          })
+        });
 
-      if (this.username.trim() === correctUsername && this.password.trim() === correctPassword) {
-        window.location.href = 'index.html';
-      } else {
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user_id', data.id);
+
+          this.$router.push('/');
+        } else {
+          this.showError = true;
+          setTimeout(() => {
+            this.showError = false;
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
         this.showError = true;
         setTimeout(() => {
           this.showError = false;

@@ -1,40 +1,67 @@
-const express = require('express')
-const router = express.Router()
-const { v4: uuidv4 } = require("uuid")
-const pool = require('../db')
+const express = require('express');
+const router = express.Router();
+const { v4: uuidv4 } = require("uuid");
+const bcrypt = require('bcrypt');
+const pool = require('../db');
 
 router.post('/', async (req, res) => {
-  const { alias } = req.body
+  const { alias, password } = req.body;
 
-  if (!alias) {
-    return res.status(400).json({ success: false, reason: "Missing alias" })
+  if (!alias || !password) {
+    return res.status(400).json({ success: false, reason: "Missing username or password" });
   }
 
   try {
-    const result = await pool.query("SELECT * admin WHERE username = $1", [alias])
-    let user = result.rows[0]
+    const result = await pool.query("SELECT * FROM admin WHERE username = $1", [alias]);
+    const user = result.rows[0];
 
-    const token = uuidv4()
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-
-    if (user) {
-      await pool.query(
-        "UPDATE admin SET session_token = $1, session_expires_at = $2 WHERE id = $3",
-        [token, expiresAt, user.id]
-      )
-    } else {
-      const insertResult = await pool.query(
-        "INSERT INTO admin (username, session_token, session_expires_at) VALUES ($1, $2, $3) RETURNING id",
-        [alias, token, expiresAt]
-      )
-      user = insertResult.rows[0]
+    if (!user) {
+      return res.status(401).json({ success: false, reason: "Invalid username" });
     }
 
-    res.json({ success: true, token, id: user.id })
-  } catch (err) {
-    console.error('DB error:', err)
-    res.status(500).json({ success: false, reason: 'Database error' })
-  }
-})
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, reason: "Invalid password" });
+    }
 
-module.exports = router
+    const token = uuidv4();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await pool.query(
+      "UPDATE admin SET session_token = $1, session_expires_at = $2 WHERE id = $3",
+      [token, expiresAt, user.id]
+    );
+
+    res.json({ success: true, token, id: user.id });
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ success: false, reason: 'Database error' });
+  }
+});
+
+router.post("/check-session", async (req, res) => {
+  const { token, user_id } = req.body;
+
+  if (!token || !user_id) {
+    return res.status(400).json({ valid: false, reason: "Missing token or user ID" });
+  }
+
+  try {
+    const result = await pool.query(`
+      SELECT username FROM admin
+      WHERE id = $1 AND session_token = $2 AND session_expires_at > NOW()
+    `, [user_id, token]);
+
+    if (result.rowCount === 0) {
+      return res.status(401).json({ valid: false });
+    }
+
+    res.json({ valid: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ valid: false, reason: 'Database error' });
+  }
+});
+
+
+module.exports = router;
