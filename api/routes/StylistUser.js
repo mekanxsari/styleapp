@@ -77,5 +77,32 @@ router.put('/single/update-passcode/:id', async (req, res) => {
   }
 });
 
+router.post('/create', async (req, res) => {
+  try {
+    const { alias, passcode } = req.body;
+
+    if (!alias) {
+      return res.status(400).json({ message: 'Alias is required' });
+    }
+
+    const insertQuery = `
+      INSERT INTO users (alias, passcode)
+      VALUES ($1, $2)
+      RETURNING id, alias, passcode
+    `;
+
+    const values = [alias.trim(), passcode?.trim() || null];
+
+    const result = await pool.query(insertQuery, values);
+
+    res.status(201).json({
+      message: 'User created successfully',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Database insert error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;

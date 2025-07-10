@@ -23,7 +23,7 @@
 
             </form>
             <button class="btn btn-primary ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
-              data-target="#createOutfitModal">
+              data-target="#addModal">
               <i class="fas fa-plus-circle"></i> Добавить пользователь
             </button>
           </div>
@@ -40,6 +40,7 @@
                 <th>ФИО</th>
                 <th>Город проживания</th>
                 <th>Клиент?</th>
+                <th>Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -87,38 +88,44 @@
       </div>
     </div>
 
-    <!-- ADD ITEM MODAL -->
-    <div class="modal fade align-items-center" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
+    <!-- ADD USER MODAL -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
       aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered align-items-center" role="document">
-        <form id="addForm" enctype="multipart/form-data">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <form id="addForm" @submit.prevent>
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="addModalLabel">Добавить одежда</h5>
+              <h5 class="modal-title" id="addModalLabel">Добавить пользователь</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
+
             <div class="modal-body">
-              <div class="form-row mb-2">
-                <div class="form-group col-md-6 mb-2">
-                  <label>Название</label>
-                  <input type="text" class="form-control" />
+              <div class="form-row">
+                <div class="form-group col-md-12">
+                  <label>Телеграм алиас (без @)</label>
+                  <input type="text" class="form-control" name="telegram-alias" v-model="newUser.alias" />
                 </div>
-                <div class="form-group col-md-6 mb-2">
-                  <label>Артикул</label>
-                  <input type="text" class="form-control" name="artikul" />
+                <div class="form-group col-md-12">
+                  <label>Код</label>
+                  <input type="text" class="form-control" name="passcode" v-model="newUser.passcode" />
                 </div>
               </div>
             </div>
+
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary" id="confirmAdd">Добавить</button>
+              <button type="button" class="btn btn-primary" id="confirmAdd" @click="submitNewUser"
+                :disabled="isAddDisabled">
+                Добавить
+              </button>
             </div>
           </div>
         </form>
       </div>
     </div>
+
 
     <!-- SHOW USER INFORMATION MODAL -->
     <div class="modal fade" id="showModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -142,7 +149,9 @@
 
                 <div class="form-group col-md-6">
                   <label>Код</label>
-                  <input type="text" class="form-control" :value="selectedUser?.passcode || ''" />
+                  <div v-if="selectedUser">
+                    <input type="text" class="form-control" v-model="selectedUser.passcode" />
+                  </div>
                 </div>
 
                 <div class="form-group col-md-6">
@@ -318,9 +327,11 @@
               <button type="button" class="btn btn-secondary" data-dismiss="modal">
                 Отмена
               </button>
-              <button type="button" class="btn btn-primary" @click="editPasscode(selectedUser)">
+              <button type="button" class="btn btn-primary" :disabled="!isPasscodeChanged"
+                @click="editPasscode(selectedUser)">
                 Сохранить изменения
               </button>
+
             </div>
           </div>
         </form>
@@ -345,20 +356,27 @@
     </button>
   </div>
 
-  <div id="createOutfitSuccess" class="alert alert-success alert-dismissible fade show" role="alert"
+  <div id="createUserSuccess" class="alert alert-success alert-dismissible fade show" role="alert"
     style="display: none; position: fixed; top: 20px; right: 20px; z-index: 9999;">
-    Образ успешно создан!
+    пользователь успешно создан!
   </div>
 </template>
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { API_URL } from '../api'
 
 const users = ref([])
-const errorMessage = ref('')
 const selectedUser = ref(null)
 const originalPasscode = ref('')
 const isPasscodeChanged = ref(false)
+const errorMessage = ref('')
+const fullscreenImage = ref(null)
+
+const newUser = ref({ alias: '', passcode: '' })
+
+const isAddDisabled = computed(() => {
+  return newUser.value.alias.trim() === '' || newUser.value.passcode.trim() === ''
+})
 
 async function fetchUsers() {
   try {
@@ -369,6 +387,29 @@ async function fetchUsers() {
   } catch (err) {
     console.error('Fetch error:', err)
     errorMessage.value = 'Не удалось загрузить пользователей.'
+  }
+}
+
+async function submitNewUser() {
+  try {
+    const response = await fetch(`${API_URL}/stylist-users/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        alias: newUser.value.alias.trim(),
+        passcode: newUser.value.passcode.trim()
+      })
+    })
+
+    if (!response.ok) throw new Error('Ошибка при добавлении пользователя')
+
+    $('#addModal').modal('hide')
+    $('#createUserSuccess').fadeIn().delay(2000).fadeOut()
+    await fetchUsers()
+    newUser.value = { alias: '', passcode: '' }
+  } catch (err) {
+    console.error('Ошибка при добавлении:', err)
+    errorMessage.value = 'Ошибка при создании пользователя'
   }
 }
 
@@ -385,21 +426,6 @@ async function openshowModal(user) {
     console.error('Error opening modal:', err)
     errorMessage.value = 'Failed to load user details'
   }
-}
-
-const images = ref([
-  'https://randomwordgenerator.com/img/picture-generator/52e4d2464356af14f1dc8460962e33791c3ad6e04e5074417d2e72d6934cc5_640.jpg',
-  'https://randomwordgenerator.com/img/picture-generator/54e7d64a4b53a914f1dc8460962e33791c3ad6e04e50744172297cdd9444cc_640.jpg',
-  'https://randomwordgenerator.com/img/picture-generator/5ee2d3424a57b10ff3d8992cc12c30771037dbf85254794e722679d7934d_640.jpg',
-  'https://randomwordgenerator.com/img/picture-generator/55e2d6474950af14f1dc8460962e33791c3ad6e04e507441722872d69049cc_640.jpg'
-])
-
-const fullscreenImage = ref(null)
-function openFullscreen(img) {
-  fullscreenImage.value = img
-}
-function closeFullscreen() {
-  fullscreenImage.value = null
 }
 
 watch(
@@ -420,6 +446,7 @@ async function editPasscode(user) {
     })
 
     if (!response.ok) throw new Error('Failed to update passcode')
+    $('#showModal').modal('hide')
     $('#editSuccess').fadeIn().delay(2000).fadeOut()
     isPasscodeChanged.value = false
     originalPasscode.value = user.passcode
@@ -429,7 +456,24 @@ async function editPasscode(user) {
   }
 }
 
+const images = ref([
+  'https://randomwordgenerator.com/img/picture-generator/52e4d2464356af14f1dc8460962e33791c3ad6e04e5074417d2e72d6934cc5_640.jpg',
+  'https://randomwordgenerator.com/img/picture-generator/54e7d64a4b53a914f1dc8460962e33791c3ad6e04e50744172297cdd9444cc_640.jpg'
+])
+
+function openFullscreen(img) {
+  fullscreenImage.value = img
+}
+
+function closeFullscreen() {
+  fullscreenImage.value = null
+}
+
 onMounted(() => {
   fetchUsers()
+
+  $('#addModal').on('show.bs.modal', () => {
+    newUser.value = { alias: '', passcode: '' }
+  })
 })
 </script>
