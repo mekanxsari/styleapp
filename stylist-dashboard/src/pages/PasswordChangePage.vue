@@ -74,7 +74,7 @@ async function handleChangePassword() {
   }
 
   const user_id = localStorage.getItem('user_id');
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('session_token');
 
   if (!user_id || !token) {
     errorMessage.value = 'Пользователь не авторизован.';
@@ -104,6 +104,10 @@ async function handleChangePassword() {
 
     if (response.ok && data.success) {
       successMessage.value = 'Пароль успешно изменён!';
+      setTimeout(() => {
+        successMessage.value = '';
+    }, 3000);
+
       currentPassword.value = '';
       newPassword.value = '';
       confirmPassword.value = '';

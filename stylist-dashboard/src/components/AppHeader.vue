@@ -33,10 +33,30 @@
             </router-link>
 
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt mr-2"></i>Выйти</a>
+              <a class="dropdown-item text-danger" href="#" @click.prevent="logout">
+  <i class="fas fa-sign-out-alt mr-2"></i>Выйти
+</a>
+
             </div>
           </li>
         </ul>
       </div>
     </nav>
 </template>
+<script>
+import { useRouter } from 'vue-router';
+
+export default {
+  setup() {
+    const router = useRouter();
+
+    function logout() {
+      localStorage.removeItem('session_token');
+      localStorage.removeItem('user_id');
+      router.push('/login');
+    }
+
+    return { logout };
+  }
+};
+</script>

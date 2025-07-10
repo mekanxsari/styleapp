@@ -62,10 +62,8 @@ router.post("/check-session", async (req, res) => {
 
 router.post('/change-password', async (req, res) => {
   const { user_id, token, currentPassword, newPassword } = req.body;
-  console.log('🔐 Change password payload:', { user_id, token, currentPassword, newPassword });
 
   if (!user_id || !token || !currentPassword || !newPassword) {
-    console.log('❌ Missing parameters');
     return res.status(400).json({ success: false, reason: "Missing parameters" });
   }
 
@@ -75,17 +73,13 @@ router.post('/change-password', async (req, res) => {
       WHERE id = $1 AND session_token = $2 AND session_expires_at > NOW()
     `, [user_id, token]);
 
-    console.log('📦 Session result:', sessionResult.rows);
-
     if (sessionResult.rowCount === 0) {
-      console.log('❌ Invalid or expired session');
       return res.status(401).json({ success: false, reason: "Invalid or expired session" });
     }
 
     const user = sessionResult.rows[0];
 
     if (currentPassword !== user.password) {
-      console.log('❌ Incorrect current password');
       return res.status(401).json({ success: false, reason: "Current password is incorrect" });
     }
 
@@ -94,10 +88,8 @@ router.post('/change-password', async (req, res) => {
       [newPassword, user_id]
     );
 
-    console.log('✅ Password updated');
     res.json({ success: true, message: "Password changed successfully" });
   } catch (err) {
-    console.error('🔥 DB error during password change:', err);
     res.status(500).json({ success: false, reason: 'Database error' });
   }
 });
