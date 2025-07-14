@@ -316,6 +316,13 @@
                     placeholder="Введите описание образа"></textarea>
                 </div>
               </div>
+              <div class="form-group col-md-12">
+                <label>Назначить пользователям</label>
+                <input type="text" id="userAliasInput" class="form-control" placeholder="Введите алиас пользователя" />
+                <div id="userSearchResults" class="mt-2"></div>
+                <div id="selectedAliases" class="mt-2"></div>
+              </div>
+
 
               <hr />
               <h5 class="mb-3">Выбранные одежды</h5>
@@ -682,11 +689,7 @@ export default {
       formData.append('image', image);
 
       this.selectedIds.forEach(id => formData.append('clothesIds[]', id));
-
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
+      selectedAliases.forEach(alias => formData.append('userAliases[]', alias));
 
       try {
         const response = await fetch(`${API_URL}/stylist-outfit/`, {
@@ -867,4 +870,38 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   }
 };
+
+let selectedAliases = [];
+
+document.getElementById('userAliasInput').addEventListener('input', async function () {
+  const query = this.value.trim();
+  if (query.length === 0) {
+    document.getElementById('userSearchResults').innerHTML = '';
+    return;
+  }
+
+  const response = await fetch(`${API_URL}/stylist-users/search?alias=${query}`);
+  const users = await response.json();
+
+  const resultsDiv = document.getElementById('userSearchResults');
+  resultsDiv.innerHTML = '';
+  users.forEach(user => {
+    const btn = document.createElement('button');
+    btn.classList.add('btn', 'btn-sm', 'btn-outline-primary', 'mr-1', 'mb-1');
+    btn.innerText = user.alias;
+    btn.onclick = () => {
+      if (!selectedAliases.includes(user.alias)) {
+        selectedAliases.push(user.alias);
+        updateSelectedAliasDisplay();
+      }
+    };
+    resultsDiv.appendChild(btn);
+  });
+});
+
+function updateSelectedAliasDisplay() {
+  const container = document.getElementById('selectedAliases');
+  container.innerHTML = selectedAliases.map(alias =>
+    `<span class="badge badge-info mr-1">${alias}</span>`).join('');
+}
 </script>

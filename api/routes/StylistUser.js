@@ -124,5 +124,20 @@ router.delete('/delete/:id', async (req, res) => {
   }
 });
 
+router.get('/search', async (req, res) => {
+  const alias = req.query.alias;
+  if (!alias) return res.json([]);
+
+  try {
+    const result = await pool.query(
+      `SELECT id, alias FROM users WHERE alias ILIKE $1 LIMIT 5`,
+      [`%${alias}%`]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;

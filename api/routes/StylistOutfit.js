@@ -20,8 +20,15 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/', upload.single('image'), async (req, res) => {
-  const { title, description, category, season } = req.body;
+  const { title, description, category, season, userAliases } = req.body;
   const clothesIds = req.body.clothesIds;
+
+  const aliasArray = userAliases
+    ? Array.isArray(userAliases)
+      ? userAliases
+      : [userAliases]
+    : [];
+  const isPublic = aliasArray.length === 0;
 
   try {
     if (!req.file) {
@@ -37,14 +44,34 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const result = await pool.query(
       `
-      INSERT INTO outfits (image_url, title, description, season, label)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO outfits (image_url, title, description, season, label, is_public)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id
       `,
-      [image_url, title, description, season, category]
+      [image_url, title, description, season, category, isPublic]
     );
 
     const outfitId = result.rows[0].id;
+
+    if (!isPublic) {
+      const aliasesArray = Array.isArray(userAliases) ? userAliases : [userAliases];
+      const usersResult = await pool.query(
+        `SELECT id FROM users WHERE alias = ANY($1::text[])`,
+        [aliasesArray]
+      );
+
+      const userIds = usersResult.rows.map(row => row.id);
+
+      if (userIds.length > 0) {
+        const values = userIds.map((_, idx) => `($1, $${idx + 2})`).join(', ');
+        const params = [outfitId, ...userIds];
+        await pool.query(
+          `INSERT INTO users_outfits (outfit_id, user_id) VALUES ${values}`,
+          params
+        );
+      }
+    }
+
 
     const insertValues = clothesArray.map((_, idx) => `($1, $${idx + 2})`).join(', ');
     const insertParams = [outfitId, ...clothesArray];
