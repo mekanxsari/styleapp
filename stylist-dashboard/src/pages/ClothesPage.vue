@@ -21,7 +21,6 @@
               </div>
               <button @click.prevent="handleSearch" type="submit" class="btn btn-primary mb-2">Поиск</button>
               <button type="button" class="btn btn-secondary mb-2 ml-2" @click="clearSearch">Сбросить</button>
-
             </form>
             <button class="btn btn-success ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
               data-target="#addModal">
@@ -98,7 +97,7 @@
             <p>Это действие нельзя отменить. Все данные будут удалены безвозвратно.</p>
             <div class="delete-confirm-buttons mt-4">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-danger" id="confirmDelete">Удалить</button>
+              <button type="button" class="btn btn-danger" @click="confirmDelete">Удалить</button>
             </div>
           </div>
         </div>
@@ -167,7 +166,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary" id="confirmAdd">Добавить</button>
+              <button type="button" class="btn btn-primary" @click="confirmAdd">Добавить</button>
             </div>
           </div>
         </form>
@@ -216,7 +215,6 @@
                     <option value="Обувь">Обувь</option>
                     <option value="Аксессуар">Аксессуар</option>
                   </select>
-
                 </div>
               </div>
 
@@ -243,7 +241,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary" id="confirmEdit">Сохранить изменения</button>
+              <button type="button" class="btn btn-primary" @click="confirmEdit">Сохранить изменения</button>
             </div>
           </div>
         </form>
@@ -296,7 +294,6 @@
                     <option value="Коктейльный">Коктейльный</option>
                     <option value="Минималистичный">Минималистичный</option>
                   </select>
-
                 </div>
 
                 <div class="form-group col-md-6">
@@ -315,14 +312,25 @@
                   <textarea class="form-control" id="outfitDescription" rows="3"
                     placeholder="Введите описание образа"></textarea>
                 </div>
-              </div>
-              <div class="form-group col-md-12">
+                <div class="form-group col-md-12">
                 <label>Назначить пользователям</label>
-                <input type="text" id="userAliasInput" class="form-control" placeholder="Введите алиас пользователя" />
-                <div id="userSearchResults" class="mt-2"></div>
-                <div id="selectedAliases" class="mt-2"></div>
+                <input type="text" v-model="userSearchQuery" @input="searchUsers" class="form-control" placeholder="Введите алиас пользователя" />
+                <div class="mt-2">
+                  <button v-for="user in searchResults" :key="user.id" 
+                          @click="addAlias(user.alias)"
+                          class="btn btn-sm btn-outline-primary mr-1 mb-1">
+                    {{ user.alias }}
+                  </button>
+                </div>
+                <div class="mt-2" style="display: flex;">
+                  <span v-for="alias in selectedAliases" :key="alias" class="badge badge-info mr-1" style="display: inline-flex;align-items: center;padding:5px 5px;">
+                    {{ alias }}
+                    <button @click="removeAlias(alias)" class="close ml-2">&times;</button>
+                  </span>
+                </div>
               </div>
-
+              </div>
+              
 
               <hr />
               <h5 class="mb-3">Выбранные одежды</h5>
@@ -330,7 +338,7 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary" id="confirmCreateOutfit">Создать образ</button>
+              <button type="button" class="btn btn-primary" @click="confirmCreateOutfit">Создать образ</button>
             </div>
           </form>
         </div>
@@ -360,6 +368,7 @@
     Образ успешно создан!
   </div>
 </template>
+
 <script>
 import { API_URL, SITE_URL } from '../api'
 
@@ -376,6 +385,9 @@ export default {
       itemIdToEdit: null,
       searchText: '',
       searchField: '',
+      selectedAliases: [],
+      userSearchQuery: '',
+      searchResults: []
     };
   },
   methods: {
@@ -403,16 +415,13 @@ export default {
           page: this.page.toString(),
         });
 
-        if (this.searchText) {
+        if (this.searchText && this.searchField) {
           params.append('q', this.searchText);
-          if (this.searchField) {
-            params.append('field', this.searchField);
-          }
+          params.append('field', this.searchField);
         }
 
         const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
         if (!response.ok) throw new Error('Failed to fetch clothes');
-
         const data = await response.json();
 
         if (data.length === 0) {
@@ -526,25 +535,17 @@ export default {
       }
 
       try {
-        console.log('Sending PUT request to update item with id:', id);
-
         const response = await fetch(`${API_URL}/stylist-cloth/${id}`, {
           method: 'PUT',
           body: formData,
         });
 
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Response error text:', errorText);
           throw new Error('Failed to save changes');
         }
 
         const updated = await response.json();
-        console.log('Updated item received from server:', updated);
-
         const index = this.items.findIndex(item => item.id === id);
         if (index !== -1) this.items.splice(index, 1, updated);
 
@@ -603,7 +604,6 @@ export default {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Ошибка при добавлении одежды:', errorText);
           throw new Error('Ошибка при добавлении одежды');
         }
 
@@ -625,6 +625,7 @@ export default {
         alert('Ошибка при добавлении!');
       }
     },
+
     updateSelectedItemsPreview() {
       const container = document.getElementById('selectedItemsPreview');
       container.innerHTML = '';
@@ -637,16 +638,16 @@ export default {
         col.dataset.id = item.id;
 
         col.innerHTML = `
-      <div class="card mb-3">
-        <img src="${this.SITE_URL}/app-images/${item.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.title}">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <span class="item-title">${item.title}</span>
-          <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${item.id}">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </div>
-    `;
+          <div class="card mb-3">
+            <img src="${this.SITE_URL}/app-images/${item.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.title}">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <span class="item-title">${item.title}</span>
+              <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto" data-id="${item.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
         container.appendChild(col);
       });
 
@@ -662,6 +663,32 @@ export default {
         });
       });
     },
+
+    async searchUsers() {
+      if (this.userSearchQuery.trim().length === 0) {
+        this.searchResults = [];
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}/stylist-users/search?alias=${this.userSearchQuery}`);
+        this.searchResults = await response.json();
+      } catch (error) {
+        console.error('Error searching users:', error);
+        this.searchResults = [];
+      }
+    },
+    
+    addAlias(alias) {
+      if (!this.selectedAliases.includes(alias)) {
+        this.selectedAliases.push(alias);
+      }
+    },
+    
+    removeAlias(alias) {
+      this.selectedAliases = this.selectedAliases.filter(a => a !== alias);
+    },
+
     async confirmCreateOutfit() {
       const form = document.getElementById('createOutfitForm');
       const formData = new FormData();
@@ -689,7 +716,7 @@ export default {
       formData.append('image', image);
 
       this.selectedIds.forEach(id => formData.append('clothesIds[]', id));
-      selectedAliases.forEach(alias => formData.append('userAliases[]', alias));
+      this.selectedAliases.forEach(alias => formData.append('userAliases[]', alias));
 
       try {
         const response = await fetch(`${API_URL}/stylist-outfit/`, {
@@ -701,6 +728,7 @@ export default {
 
         $('#createOutfitModal').modal('hide');
         this.selectedIds = [];
+        this.selectedAliases = [];
         document.getElementById('createOutfitSuccess').style.display = 'block';
         setTimeout(() => {
           document.getElementById('createOutfitSuccess').style.display = 'none';
@@ -710,198 +738,105 @@ export default {
         alert('Ошибка при создании образа');
       }
     },
-    async fetchClothes(reset = false) {
-      if (this.isLoading || this.allLoaded) return;
 
-      if (reset) {
-        this.items = [];
-        this.page = 1;
-        this.allLoaded = false;
-      }
-
-      this.isLoading = true;
-      try {
-        const params = new URLSearchParams({
-          page: this.page.toString(),
-        });
-
-        if (this.searchText && this.searchField) {
-          params.append('q', this.searchText);
-          params.append('field', this.searchField);
-        }
-
-        const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
-        if (!response.ok) throw new Error('Failed to fetch clothes');
-        const data = await response.json();
-
-        if (data.length === 0) {
-          this.allLoaded = true;
-        } else {
-          if (reset) {
-            this.items = data;
-          } else {
-            this.items.push(...data);
-          }
-          this.page += 1;
-        }
-
-      } catch (error) {
-        console.error('Error fetching clothes:', error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
     handleSearch() {
       this.fetchClothes(true);
     },
+
     clearSearch() {
       this.searchText = '';
       this.searchField = '';
       this.fetchClothes(true);
     },
+
+    initImageUploads() {
+      // Add modal image upload
+      const addOverlay = document.querySelector('#addModal .upload-overlay');
+      const addFileInput = document.getElementById('itemImage');
+
+      if (addOverlay && addFileInput) {
+        addOverlay.addEventListener('click', () => {
+          addFileInput.click();
+        });
+      }
+
+      if (addFileInput) {
+        addFileInput.addEventListener('change', (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const preview = document.getElementById('itemPreview');
+              preview.src = e.target.result;
+              preview.style.display = 'block';
+              addOverlay.removeAttribute('style');
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Edit modal image upload
+      const editOverlay = document.querySelector('#editModal .upload-overlay');
+      const editFileInput = document.getElementById('editImageInput');
+
+      if (editOverlay && editFileInput) {
+        editOverlay.addEventListener('click', () => {
+          editFileInput.click();
+        });
+      }
+
+      if (editFileInput) {
+        editFileInput.addEventListener('change', (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              document.getElementById('editImagePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Create outfit modal image upload
+      const createOverlay = document.querySelector('#createOutfitModal .upload-overlay');
+      const createFileInput = document.getElementById('outfitImage');
+
+      if (createOverlay && createFileInput) {
+        createOverlay.addEventListener('click', () => {
+          createFileInput.click();
+        });
+      }
+
+      if (createFileInput) {
+        createFileInput.addEventListener('change', (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const preview = document.getElementById('outfitPreview');
+              preview.src = e.target.result;
+              preview.style.display = 'block';
+              createOverlay.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+    }
   },
   mounted() {
     this.fetchClothes();
     window.addEventListener('scroll', this.handleScroll);
-
-    document.getElementById('confirmDelete').onclick = () => {
-      this.confirmDelete();
-    };
-
-    document.getElementById('confirmEdit').onclick = () => {
-      this.confirmEdit();
-    };
-
-    const overlay = document.querySelector('#editModal .upload-overlay');
-    const fileInput = document.getElementById('editImageInput');
-
-    if (overlay && fileInput) {
-      overlay.addEventListener('click', () => {
-        fileInput.click();
-      });
-    }
-
-    if (fileInput) {
-      fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            document.getElementById('editImagePreview').src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-
-    document.getElementById('confirmAdd').onclick = () => {
-      this.confirmAdd();
-    };
-
-    const addOverlay = document.querySelector('#addModal .upload-overlay');
-    const addFileInput = document.getElementById('itemImage');
-
-    if (addOverlay && addFileInput) {
-      addOverlay.addEventListener('click', () => {
-        addFileInput.click();
-      });
-    }
-
-    if (addFileInput) {
-      addFileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const preview = document.getElementById('itemPreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            addOverlay.removeAttribute('style');
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
+    this.initImageUploads();
 
     $('#createOutfitModal').on('show.bs.modal', () => {
       this.updateSelectedItemsPreview();
     });
-
-    document.getElementById('confirmCreateOutfit').onclick = () => {
-      this.confirmCreateOutfit();
-    };
-
-    const createOverlay = document.querySelector('#createOutfitModal .upload-overlay');
-    const createFileInput = document.getElementById('outfitImage');
-
-    if (createOverlay && createFileInput) {
-      createOverlay.addEventListener('click', () => {
-        createFileInput.click();
-      });
-    }
-
-    if (createFileInput) {
-      createFileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const preview = document.getElementById('outfitPreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            createOverlay.style.display = 'none';
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-
-    const Eoverlay = document.querySelector('#editModal .upload-overlay');
-    const EfileInput = document.getElementById('editImageInput');
-
-    if (Eoverlay && EfileInput) {
-      Eoverlay.addEventListener('click', () => {
-        EfileInput.click();
-      });
-    }
-
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.handleScroll);
   }
 };
-
-let selectedAliases = [];
-
-document.getElementById('userAliasInput').addEventListener('input', async function () {
-  const query = this.value.trim();
-  if (query.length === 0) {
-    document.getElementById('userSearchResults').innerHTML = '';
-    return;
-  }
-
-  const response = await fetch(`${API_URL}/stylist-users/search?alias=${query}`);
-  const users = await response.json();
-
-  const resultsDiv = document.getElementById('userSearchResults');
-  resultsDiv.innerHTML = '';
-  users.forEach(user => {
-    const btn = document.createElement('button');
-    btn.classList.add('btn', 'btn-sm', 'btn-outline-primary', 'mr-1', 'mb-1');
-    btn.innerText = user.alias;
-    btn.onclick = () => {
-      if (!selectedAliases.includes(user.alias)) {
-        selectedAliases.push(user.alias);
-        updateSelectedAliasDisplay();
-      }
-    };
-    resultsDiv.appendChild(btn);
-  });
-});
-
-function updateSelectedAliasDisplay() {
-  const container = document.getElementById('selectedAliases');
-  container.innerHTML = selectedAliases.map(alias =>
-    `<span class="badge badge-info mr-1">${alias}</span>`).join('');
-}
 </script>
