@@ -120,6 +120,11 @@ router.delete('/:id', async (req, res) => {
       [id]
     );
 
+    await pool.query(
+      `DELETE FROM users_capsulas WHERE capsulas_id = $1`,
+      [id]
+    );
+
     const result = await pool.query(
       `DELETE FROM capsulas WHERE id = $1 RETURNING image_url`,
       [id]
@@ -140,6 +145,7 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 router.put('/:id', upload.single('image'), async (req, res) => {
   const { title, description, season1, season2 } = req.body;
   const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids || [];
@@ -167,13 +173,15 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       }
     }
 
+    const isPublic = !userIds || userIds.length === 0;
+
     await pool.query(
       `
       UPDATE capsulas
-      SET image_url = $1, title = $2, description = $3, season_1 = $4, season_2 = $5
-      WHERE id = $6
+      SET image_url = $1, title = $2, description = $3, season_1 = $4, season_2 = $5, is_public = $6
+      WHERE id = $7
       `,
-      [image_url, title, description || '', season1, season2 || '', id]
+      [image_url, title, description || '', season1, season2 || '', isPublic, id]
     );
 
     const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];
