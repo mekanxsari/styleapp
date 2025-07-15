@@ -22,43 +22,54 @@ const upload = multer({ storage });
 router.post('/', upload.single('image'), async (req, res) => {
   const { title, description, season1, season2 } = req.body;
   const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids;
+  const userIds = req.body['user_ids[]'] || [];   // <-- new
 
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'Image is required' });
     }
-
     if (!title || !season1 || !outfitIds) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const image_url = req.file.filename;
     const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];
-
-    const result = await pool.query(
-      `
-      INSERT INTO capsulas (image_url, title, description, season_1, season_2)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id
-      `,
-      [image_url, title, description || '', season1, season2]
+    const insertCapsule = await pool.query(
+      `INSERT INTO capsulas
+         (image_url, title, description, season_1, season_2)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      [image_url, title, description || '', season1, season2 || '']
     );
+    const capsuleId = insertCapsule.rows[0].id;
 
-    const capsuleId = result.rows[0].id;
-
-    const insertValues = outfits.map((_, i) => `($1, $${i + 2})`).join(', ');
-    const insertParams = [capsuleId, ...outfits];
-
+    const outfitPlaceholders = outfits.map((_, i) => `($1, $${i + 2})`).join(', ');
     await pool.query(
-      `INSERT INTO capsulas_superset (capsulas_id, outfit_id) VALUES ${insertValues}`,
-      insertParams
+      `INSERT INTO capsulas_superset (capsulas_id, outfit_id)
+       VALUES ${outfitPlaceholders}`,
+      [capsuleId, ...outfits]
     );
 
-    res.status(201).json({ message: 'Capsule created successfully', capsule_id: capsuleId });
+    if (Array.isArray(userIds) && userIds.length > 0) {
+      const userPlaceholders = userIds.map((_, i) => `($1, $${i + 2})`).join(', ');
+      await pool.query(
+        `INSERT INTO users_capsulas (user_id, capsulas_id)
+         VALUES ${userPlaceholders}`,
+        [capsuleId, ...userIds]
+      );
+    }
+
+    res.status(201).json({
+      message: 'Capsule created successfully',
+      capsule_id: capsuleId
+    });
+
   } catch (err) {
+    console.error('Error creating capsule:', err);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
