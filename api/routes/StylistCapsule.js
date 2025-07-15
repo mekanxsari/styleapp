@@ -23,7 +23,6 @@ router.post('/', upload.single('image'), async (req, res) => {
   const { title, description, season1, season2 } = req.body;
   const outfitIds = req.body.outfit_ids || [];
   const userIds = req.body.user_ids || [];
-  console.log('req.body:', req.body);
 
   try {
     if (!req.file) {
@@ -141,10 +140,10 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 router.put('/:id', upload.single('image'), async (req, res) => {
   const { title, description, season1, season2 } = req.body;
-  const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids;
+  const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids || [];
+  const userIds = req.body['user_ids[]'] || req.body.user_ids || [];
   const { id } = req.params;
 
   try {
@@ -174,26 +173,55 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       SET image_url = $1, title = $2, description = $3, season_1 = $4, season_2 = $5
       WHERE id = $6
       `,
-      [image_url, title, description || '', season1, season2, id]
+      [image_url, title, description || '', season1, season2 || '', id]
     );
 
-    if (outfitIds) {
-      const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];
+    const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];
+    await pool.query(`DELETE FROM capsulas_superset WHERE capsulas_id = $1`, [id]);
 
-      await pool.query(`DELETE FROM capsulas_superset WHERE capsulas_id = $1`, [id]);
-
-      const insertValues = outfits.map((_, i) => `($1, $${i + 2})`).join(', ');
-      const insertParams = [id, ...outfits];
-
+    if (outfits.length > 0) {
+      const insertOutfits = outfits.map((_, i) => `($1, $${i + 2})`).join(', ');
       await pool.query(
-        `INSERT INTO capsulas_superset (capsulas_id, outfit_id) VALUES ${insertValues}`,
-        insertParams
+        `INSERT INTO capsulas_superset (capsulas_id, outfit_id) VALUES ${insertOutfits}`,
+        [id, ...outfits]
+      );
+    }
+
+    const users = Array.isArray(userIds) ? userIds : [userIds];
+    await pool.query(`DELETE FROM users_capsulas WHERE capsulas_id = $1`, [id]);
+
+    if (users.length > 0) {
+      const insertUsers = users.map((_, i) => `($1, $${i + 2})`).join(', ');
+      await pool.query(
+        `INSERT INTO users_capsulas (capsulas_id, user_id) VALUES ${insertUsers}`,
+        [id, ...users]
       );
     }
 
     res.json({ message: 'Capsule updated successfully' });
   } catch (err) {
     console.error('Error updating capsule:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.get('/:id/users', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT u.id, u.alias
+      FROM users u
+      JOIN users_capsulas uc ON uc.user_id = u.id
+      WHERE uc.capsulas_id = $1
+      `,
+      [id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching capsule users:', err);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

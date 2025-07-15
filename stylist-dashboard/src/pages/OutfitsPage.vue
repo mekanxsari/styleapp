@@ -6,7 +6,8 @@
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <form class="form-inline mb-2 mb-md-0" style="flex: 1 1 auto;">
                             <div class="input-group mr-2 mb-2">
-                                <input type="text" class="form-control search" placeholder="Поиск..." aria-label="Поиск">
+                                <input type="text" class="form-control search" placeholder="Поиск..."
+                                    aria-label="Поиск">
                             </div>
                             <div class="form-group mr-2 mb-2">
                                 <select class="form-control search-select">
@@ -218,7 +219,8 @@
 
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                                <button type="submit" class="btn btn-primary" id="editOutfit">Сохранить изменения</button>
+                                <button type="submit" class="btn btn-primary" id="editOutfit">Сохранить
+                                    изменения</button>
                             </div>
                         </form>
                     </div>
@@ -249,12 +251,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                <input type="file" id="capsuleImage" accept="image/*" style="display: none;">
+                                <input type="file" id="capsuleImage" name="image" accept="image/*" style="display: none;">
                             </div>
 
                             <div class="form-group">
                                 <label for="capsuleTitle">Название капсулы</label>
-                                <input type="text" class="form-control" id="capsuleTitle" placeholder="Введите название"
+                                <input name="title" type="text" class="form-control" id="capsuleTitle" placeholder="Введите название"
                                     required>
                             </div>
                             <div class="form-row">
@@ -271,7 +273,7 @@
 
                                 <div class="form-group col-md-6">
                                     <label>Сезон 2</label>
-                                    <select class="form-control" name="season2" id="outfitSeason2" required>
+                                    <select class="form-control" name="season2" id="outfitSeason2">
                                         <option value="">Выберите сезон</option>
                                         <option value="Зима">Зима</option>
                                         <option value="Весна">Весна</option>
@@ -282,36 +284,27 @@
                             </div>
                             <div class="form-group">
                                 <label for="capsuleDescription">Описание</label>
-                                <textarea class="form-control" id="capsuleDescription" rows="3"
+                                <textarea name="description" class="form-control" id="capsuleDescription" rows="3"
                                     placeholder="Введите описание капсулы"></textarea>
                             </div>
                             <div class="form-group">
                                 <label>Назначить пользователям</label>
-                                <input
-                                    type="text"
-                                    v-model="createUserSearchQuery"
-                                    @input="createSearchUsers"
-                                    class="form-control"
-                                    placeholder="Введите алиас пользователя" />
+                                <input type="text" v-model="createUserSearchQuery" @input="createSearchUsers"
+                                    class="form-control" placeholder="Введите алиас пользователя" />
                                 <div class="mt-2">
-                                    <button
-                                        v-for="user in createSearchResults"
-                                        :key="user.id"
+                                    <button v-for="user in createSearchResults" :key="user.id"
                                         @click.prevent="createAddUser(user)"
-                                        class="btn btn-sm btn-outline-primary mr-1 mb-1"
-                                    >
+                                        class="btn btn-sm btn-outline-primary mr-1 mb-1">
                                         {{ user.alias }}
                                     </button>
                                 </div>
                                 <div class="mt-2" style="display: flex; flex-wrap: wrap;">
-                                    <span
-                                        v-for="(id, index) in createSelectedUserIds"
-                                        :key="id"
+                                    <span v-for="(id, index) in createSelectedUserIds" :key="id"
                                         class="badge badge-info mr-1 mb-1"
-                                        style="display: inline-flex; align-items: center; padding: 5px;"
-                                    >
+                                        style="display: inline-flex; align-items: center; padding: 5px;">
                                         {{ createSelectedUserAliases[index] }}
-                                        <button @click.prevent="createRemoveUser(id)" class="close ml-1">&times;</button>
+                                        <button @click.prevent="createRemoveUser(id)"
+                                            class="close ml-1">&times;</button>
                                     </span>
                                 </div>
                             </div>
@@ -582,39 +575,25 @@ export default {
                     alert('Не удалось удалить образ.');
                 }
             });
+        },
+        async submitCapsuleForm() {
+            const selected = this.getSelectedOutfits();
+            if (selected.length < 3) {
+                return alert('Выберите минимум 3 образа для создания капсулы.');
+            }
+            const formData = new FormData(document.getElementById('createCapsuleForm'));
+            selected.forEach(card => formData.append('outfit_ids[]', card.dataset.id));
+            this.createSelectedUserIds.forEach(uid => formData.append('user_ids[]', uid));
+            const res = await fetch(`${API_URL}/stylist-capsule`, { method: 'POST', body: formData });
+            if (!res.ok) throw new Error(await res.text());
 
-            document.getElementById('submitCapsule').addEventListener('click', async () => {
-                const selected = this.getSelectedOutfits();
-                if (selected.length < 3) {
-                    alert('Выберите минимум 3 образа для создания капсулы.');
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('title', document.getElementById('capsuleTitle').value);
-                formData.append('season1', document.getElementById('outfitSeason1').value);
-                formData.append('season2', document.getElementById('outfitSeason2').value || '');
-                formData.append('description', document.getElementById('capsuleDescription').value || '');
-
-                selected.forEach(card => formData.append('outfit_ids[]', card.dataset.id));
-                this.createSelectedUserIds.forEach(uid => formData.append('user_ids[]', uid));
-
-                const imageFile = document.getElementById('capsuleImage').files[0];
-                if (imageFile) formData.append('image', imageFile);
-
-                try {
-                    const res = await fetch(`${API_URL}/stylist-capsule`, { method: 'POST', body: formData });
-                    if (!res.ok) throw new Error(await res.text());
-                    $('#createCapsuleModal').modal('hide');
-                    this.showSuccess('createCapsuleSuccess');
-                    this.fetchOutfits();
-                    this.createSelectedUserIds = [];
-                    this.createSelectedUserAliases = [];
-                } catch (err) {
-                    console.error('Ошибка при создании капсулы:', err);
-                    alert('Не удалось создать капсулу.');
-                }
-            });
+            $('#createCapsuleModal').modal('hide');
+            document.querySelectorAll('.select-checkbox:checked').forEach(cb => cb.checked = false);
+            this.toggleCapsuleBtn();
+            this.showSuccess('createCapsuleSuccess');
+            this.fetchOutfits();
+            this.createSelectedUserIds = [];
+            this.createSelectedUserAliases = [];
         },
     },
     mounted() {

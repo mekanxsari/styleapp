@@ -131,6 +131,24 @@
               <textarea class="form-control" v-model="selectedCapsule.description" rows="3"></textarea>
             </div>
 
+            <div class="form-group">
+              <label>Назначить пользователям</label>
+              <input type="text" class="form-control" v-model="editUserSearchQuery" @input="editSearchUsers"
+                placeholder="Введите алиас пользователя" />
+              <div class="mt-2">
+                <button v-for="user in editSearchResults" :key="user.id"
+                  class="btn btn-sm btn-outline-primary mr-1 mb-1" @click.prevent="editAddUser(user)">{{ user.alias
+                  }}</button>
+              </div>
+              <div class="mt-2" style="display:flex; flex-wrap:wrap;">
+                <span v-for="(id, idx) in editSelectedUserIds" :key="id" class="badge badge-info mr-1 mb-1"
+                  style="display:inline-flex;align-items:center;padding:5px;">
+                  {{ editSelectedUserAliases[idx] }}
+                  <button class="close ml-1" @click.prevent="editRemoveUser(id)">&times;</button>
+                </span>
+              </div>
+            </div>
+
             <hr>
             <h5 class="mb-3">Образы в капсуле</h5>
             <div class="container d-flex justify-content-center">
@@ -194,6 +212,10 @@ import { API_URL, SITE_URL } from '../api'
 export default {
   data() {
     return {
+      editUserSearchQuery: '',
+      editSearchResults: [],
+      editSelectedUserIds: [],
+      editSelectedUserAliases: [],
       SITE_URL,
       capsules: [],
       selectedCapsule: {
@@ -232,6 +254,15 @@ export default {
       try {
         const response = await fetch(`${API_URL}/stylist-capsule/${capsule.id}`);
         const data = await response.json();
+        const usersRes = await fetch(`${API_URL}/stylist-capsule/${capsule.id}/users`)
+        if (usersRes.ok) {
+          const users = await usersRes.json()
+          this.editSelectedUserIds = users.map(u => u.id)
+          this.editSelectedUserAliases = users.map(u => u.alias)
+        } else {
+          this.editSelectedUserIds = []
+          this.editSelectedUserAliases = []
+        }
 
         this.selectedCapsule = {
           id: data.id,
@@ -280,6 +311,10 @@ export default {
       formData.append('description', this.selectedCapsule.description || '');
       formData.append('season1', this.selectedCapsule.seasons[0]);
       formData.append('season2', this.selectedCapsule.seasons[1] || '');
+      this.editSelectedUserIds.forEach(uid => {
+        formData.append('user_ids[]', uid)
+      })
+
 
       this.selectedCapsule.outfits.forEach(o => {
         formData.append('outfit_ids[]', o.id);
@@ -338,7 +373,34 @@ export default {
       $('#deleteModal').modal('hide');
       this.currentDeleteId = null;
       this.currentDeleteType = null;
-    }
+    },
+    async editSearchUsers() {
+      if (!this.editUserSearchQuery.trim()) {
+        this.editSearchResults = []
+        return
+      }
+      try {
+        const res = await fetch(`${API_URL}/stylist-users/search?alias=${encodeURIComponent(this.editUserSearchQuery)}`)
+        this.editSearchResults = await res.json()
+      } catch {
+        this.editSearchResults = []
+      }
+    },
+
+    editAddUser(user) {
+      if (!this.editSelectedUserIds.includes(user.id)) {
+        this.editSelectedUserIds.push(user.id)
+        this.editSelectedUserAliases.push(user.alias)
+      }
+    },
+
+    editRemoveUser(userId) {
+      const idx = this.editSelectedUserIds.indexOf(userId)
+      if (idx !== -1) {
+        this.editSelectedUserIds.splice(idx, 1)
+        this.editSelectedUserAliases.splice(idx, 1)
+      }
+    },
   }
 }
 </script>
