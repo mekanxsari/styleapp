@@ -154,7 +154,7 @@ router.delete('/:id', async (req, res) => {
 
 router.put('/:id', upload.single('image'), async (req, res) => {
   const outfitId = req.params.id;
-  const { title, description, category, season } = req.body;
+  const { title, description, category, season, userAliases } = req.body;
 
   try {
     if (!title || !season || !category) {
@@ -162,7 +162,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     }
 
     const outfitResult = await pool.query(
-      'SELECT image_url FROM outfits WHERE id = $1',
+      'SELECT image_url, is_public FROM outfits WHERE id = $1',
       [outfitId]
     );
 
@@ -171,6 +171,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     }
 
     const oldImageUrl = outfitResult.rows[0].image_url;
+    const wasPublic = outfitResult.rows[0].is_public;
     let newImageUrl = oldImageUrl;
 
     if (req.file) {
@@ -181,6 +182,13 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       }
     }
 
+    const aliasArray = userAliases
+      ? Array.isArray(userAliases)
+        ? userAliases
+        : [userAliases]
+      : [];
+    const isPublic = aliasArray.length === 0;
+
     await pool.query(
       `
       UPDATE outfits
@@ -188,11 +196,34 @@ router.put('/:id', upload.single('image'), async (req, res) => {
           title = $2,
           description = $3,
           season = $4,
-          label = $5
-      WHERE id = $6
+          label = $5,
+          is_public = $6
+      WHERE id = $7
       `,
-      [newImageUrl, title, description, season, category, outfitId]
+      [newImageUrl, title, description, season, category, isPublic, outfitId]
     );
+
+    if (!isPublic) {
+      await pool.query('DELETE FROM users_outfits WHERE outfit_id = $1', [outfitId]);
+
+      const usersResult = await pool.query(
+        `SELECT id FROM users WHERE alias = ANY($1::text[])`,
+        [aliasArray]
+      );
+
+      const userIds = usersResult.rows.map(row => row.id);
+
+      if (userIds.length > 0) {
+        const values = userIds.map((_, idx) => `($1, $${idx + 2})`).join(', ');
+        const params = [outfitId, ...userIds];
+        await pool.query(
+          `INSERT INTO users_outfits (outfit_id, user_id) VALUES ${values}`,
+          params
+        );
+      }
+    } else if (!wasPublic) {
+      await pool.query('DELETE FROM users_outfits WHERE outfit_id = $1', [outfitId]);
+    }
 
     res.json({ message: 'Outfit updated successfully', outfit_id: outfitId });
   } catch (error) {
@@ -201,5 +232,23 @@ router.put('/:id', upload.single('image'), async (req, res) => {
   }
 });
 
+router.get('/:id/users', async (req, res) => {
+  const outfitId = req.params.id;
+  try {
+    const result = await pool.query(
+      `
+      SELECT u.id, u.alias 
+      FROM users u
+      JOIN users_outfits uo ON u.id = uo.user_id
+      WHERE uo.outfit_id = $1
+      `,
+      [outfitId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching outfit users:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;

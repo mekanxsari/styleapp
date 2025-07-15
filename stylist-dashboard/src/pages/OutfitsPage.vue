@@ -193,6 +193,26 @@
                                     <textarea class="form-control" rows="3"
                                         name="outfitDescription">Элегантный вечерний образ для особых случаев</textarea>
                                 </div>
+                                <div class="form-group col-md-12">
+                                    <label>Назначить пользователям</label>
+                                    <input type="text" v-model="editUserSearchQuery" @input="editSearchUsers"
+                                        class="form-control" placeholder="Введите алиас пользователя" />
+                                    <div class="mt-2">
+                                        <button v-for="user in editSearchResults" :key="user.id"
+                                            @click="editAddAlias(user.alias)"
+                                            class="btn btn-sm btn-outline-primary mr-1 mb-1">
+                                            {{ user.alias }}
+                                        </button>
+                                    </div>
+                                    <div class="mt-2" style="display: flex;">
+                                        <span v-for="alias in editSelectedAliases" :key="alias"
+                                            class="badge badge-info mr-1"
+                                            style="display: inline-flex;align-items: center;padding:5px 5px;">
+                                            {{ alias }}
+                                            <button @click="editRemoveAlias(alias)" class="close ml-2">&times;</button>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr>
@@ -307,6 +327,9 @@ export default {
             outfitPreviewSrc: '',
             outfitImageFile: null,
             clothingToDeleteId: null,
+            editSelectedAliases: [],
+            editUserSearchQuery: '',
+            editSearchResults: [],
         };
     },
     mounted() {
@@ -545,11 +568,17 @@ export default {
                 form.season.value = outfit.season || '';
                 form.outfitDescription.value = outfit.description || '';
 
-                const outfitPreview = document.getElementById('outfitPreview');
-                outfitPreview.src = this.siteUrl + '/app-images/' + outfit.image_url;
-                outfitPreview.style.display = 'block';
-                const uploadOverlay = document.querySelector('#outfitImageUploadArea .upload-overlay');
-                if (uploadOverlay) uploadOverlay.style.display = 'none';
+                this.outfitPreviewSrc = this.siteUrl + '/app-images/' + outfit.image_url;
+                this.outfitImageFile = null;
+
+                this.editSelectedAliases = [];
+                if (!outfit.is_public) {
+                    const usersResponse = await fetch(`${API_URL}/stylist-outfit/${id}/users`);
+                    if (usersResponse.ok) {
+                        const users = await usersResponse.json();
+                        this.editSelectedAliases = users.map(user => user.alias);
+                    }
+                }
 
                 const container = document.getElementById('clothingItemsContainer');
                 container.innerHTML = '';
@@ -561,14 +590,14 @@ export default {
                         card.style.width = '13rem';
 
                         card.innerHTML = `
-              <img src="${this.siteUrl}/app-images/${cloth.image_url}" class="card-img-top" style="height: 200px; object-fit: fit;" alt="${cloth.title}">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <span class="item-title">${cloth.title}</span>
-                <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto btn-item-delete" data-id="${cloth.id}">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            `;
+          <img src="${this.siteUrl}/app-images/${cloth.image_url}" class="card-img-top" style="height: 200px; object-fit: fit;" alt="${cloth.title}">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span class="item-title">${cloth.title}</span>
+            <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto btn-item-delete" data-id="${cloth.id}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
 
                         container.appendChild(card);
                     });
@@ -650,6 +679,10 @@ export default {
                 formData.append('image', this.outfitImageFile);
             }
 
+            this.editSelectedAliases.forEach(alias => {
+                formData.append('userAliases[]', alias);
+            });
+
             try {
                 const response = await fetch(`${API_URL}/stylist-outfit/${this.currentEditOutfitId}`, {
                     method: 'PUT',
@@ -669,6 +702,30 @@ export default {
                 console.error(err);
                 alert('Ошибка при сохранении изменений');
             }
+        },
+        async editSearchUsers() {
+            if (this.editUserSearchQuery.trim().length === 0) {
+                this.editSearchResults = [];
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/stylist-users/search?alias=${this.editUserSearchQuery}`);
+                this.editSearchResults = await response.json();
+            } catch (error) {
+                console.error('Error searching users:', error);
+                this.editSearchResults = [];
+            }
+        },
+
+        editAddAlias(alias) {
+            if (!this.editSelectedAliases.includes(alias)) {
+                this.editSelectedAliases.push(alias);
+            }
+        },
+
+        editRemoveAlias(alias) {
+            this.editSelectedAliases = this.editSelectedAliases.filter(a => a !== alias);
         },
 
         showSuccess(alertId) {
