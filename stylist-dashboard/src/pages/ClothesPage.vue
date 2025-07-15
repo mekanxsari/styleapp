@@ -750,7 +750,6 @@ export default {
     },
 
     initImageUploads() {
-      // Add modal image upload
       const addOverlay = document.querySelector('#addModal .upload-overlay');
       const addFileInput = document.getElementById('itemImage');
 
@@ -776,7 +775,6 @@ export default {
         });
       }
 
-      // Edit modal image upload
       const editOverlay = document.querySelector('#editModal .upload-overlay');
       const editFileInput = document.getElementById('editImageInput');
 
@@ -799,7 +797,6 @@ export default {
         });
       }
 
-      // Create outfit modal image upload
       const createOverlay = document.querySelector('#createOutfitModal .upload-overlay');
       const createFileInput = document.getElementById('outfitImage');
 
