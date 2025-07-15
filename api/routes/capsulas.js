@@ -12,26 +12,24 @@ router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT 
-          c.id,
-          c.image_url,
-          c.title,
-          c.season_1,
-          c.season_2,
-          COUNT(cs.outfit_id) AS quantity,
-          CASE 
-            WHEN ul.id IS NOT NULL THEN true 
-            ELSE false 
-          END AS liked
-       FROM capsulas c
-       LEFT JOIN capsulas_superset cs 
-          ON cs.capsulas_id = c.id
-       LEFT JOIN users_liked ul 
-          ON ul.liked_type = 'capsulas' 
-          AND ul.liked_id = c.id 
-          AND ul.user_id = $1
-       WHERE c.is_public = true
-       GROUP BY c.id, ul.id
-       ORDER BY c.id`,
+      c.id,
+      c.image_url,
+      c.title,
+      c.season_1,
+      c.season_2,
+      COUNT(cs.outfit_id) AS quantity,
+      BOOL_OR(ul.id IS NOT NULL) AS liked
+  FROM capsulas c
+  LEFT JOIN capsulas_superset cs 
+      ON cs.capsulas_id = c.id
+  LEFT JOIN users_liked ul 
+      ON ul.liked_type = 'capsulas' 
+      AND ul.liked_id = c.id 
+      AND ul.user_id = $1
+  WHERE c.is_public = true
+  GROUP BY c.id
+  ORDER BY c.id
+`,
       [userId]
     );
 
