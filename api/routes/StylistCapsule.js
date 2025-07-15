@@ -18,11 +18,10 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage });
-
 router.post('/', upload.single('image'), async (req, res) => {
   const { title, description, season1, season2 } = req.body;
   const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids;
-  const userIds = req.body['user_ids[]'] || [];   // <-- new
+  const userIds = req.body['user_ids[]'] || [];
 
   try {
     if (!req.file) {
@@ -34,13 +33,16 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const image_url = req.file.filename;
     const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];
+    const isPublic = !userIds || userIds.length === 0;
+
     const insertCapsule = await pool.query(
       `INSERT INTO capsulas
-         (image_url, title, description, season_1, season_2)
-       VALUES ($1, $2, $3, $4, $5)
+         (image_url, title, description, season_1, season_2, is_public)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
-      [image_url, title, description || '', season1, season2 || '']
+      [image_url, title, description || '', season1, season2 || '', isPublic]
     );
+
     const capsuleId = insertCapsule.rows[0].id;
 
     const outfitPlaceholders = outfits.map((_, i) => `($1, $${i + 2})`).join(', ');
@@ -53,7 +55,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     if (Array.isArray(userIds) && userIds.length > 0) {
       const userPlaceholders = userIds.map((_, i) => `($1, $${i + 2})`).join(', ');
       await pool.query(
-        `INSERT INTO users_capsulas (user_id, capsulas_id)
+        `INSERT INTO users_capsulas (capsulas_id, user_id)
          VALUES ${userPlaceholders}`,
         [capsuleId, ...userIds]
       );
@@ -69,7 +71,6 @@ router.post('/', upload.single('image'), async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
