@@ -10,30 +10,56 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    // 1. Get all is_public = true capsules
+    const capsulesResult = await pool.query(
       `SELECT 
-      c.id,
-      c.image_url,
-      c.title,
-      c.season_1,
-      c.season_2,
-      COUNT(cs.outfit_id) AS quantity,
-      BOOL_OR(ul.id IS NOT NULL) AS liked
-  FROM capsulas c
-  LEFT JOIN capsulas_superset cs 
-      ON cs.capsulas_id = c.id
-  LEFT JOIN users_liked ul 
-      ON ul.liked_type = 'capsulas' 
-      AND ul.liked_id = c.id 
-      AND ul.user_id = $1
-  WHERE c.is_public = true
-  GROUP BY c.id
-  ORDER BY c.id
-`,
-      [userId]
+        c.id,
+        c.image_url,
+        c.title,
+        c.season_1,
+        c.season_2
+       FROM capsulas c
+       WHERE c.is_public = true
+       ORDER BY c.id`
     );
 
-    res.json(result.rows);
+    const capsules = capsulesResult.rows;
+
+    if (capsules.length === 0) return res.json([]);
+
+    // 2. Get quantity (outfit count) for all public capsules
+    const capsuleIds = capsules.map(c => c.id);
+    const quantityResult = await pool.query(
+      `SELECT capsulas_id, COUNT(outfit_id) AS quantity
+       FROM capsulas_superset
+       WHERE capsulas_id = ANY($1)
+       GROUP BY capsulas_id`,
+      [capsuleIds]
+    );
+
+    const quantityMap = {};
+    quantityResult.rows.forEach(row => {
+      quantityMap[row.capsulas_id] = parseInt(row.quantity);
+    });
+
+    // 3. Get liked capsules for this user
+    const likedResult = await pool.query(
+      `SELECT liked_id FROM users_liked 
+       WHERE liked_type = 'capsulas' AND user_id = $1 AND liked_id = ANY($2)`,
+      [userId, capsuleIds]
+    );
+
+    const likedSet = new Set(likedResult.rows.map(r => r.liked_id));
+
+    // 4. Combine everything
+    const enrichedCapsules = capsules.map(c => ({
+      ...c,
+      quantity: quantityMap[c.id] || 0,
+      liked: likedSet.has(c.id)
+    }));
+
+    res.json(enrichedCapsules);
+
   } catch (error) {
     console.error("Database query error:", error);
     res.status(500).json({ message: "Internal server error" });
