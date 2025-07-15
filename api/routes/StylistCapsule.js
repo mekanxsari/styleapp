@@ -18,10 +18,12 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage });
+
 router.post('/', upload.single('image'), async (req, res) => {
   const { title, description, season1, season2 } = req.body;
   const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids;
   const userIds = req.body['user_ids[]'] || [];
+  console.log('req.body:', req.body);
 
   try {
     if (!req.file) {
