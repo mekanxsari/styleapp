@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ message: "Missing user ID" });
   }
 
-  const conditions = [];
+  const conditions = ['o.is_public = true'];
   const values = [userId];
   let index = 2;
 
