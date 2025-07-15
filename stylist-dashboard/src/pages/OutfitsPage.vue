@@ -314,339 +314,137 @@
     </div>
 </template>
 <script>
-import { API_URL, SITE_URL } from '../api'
+import { API_URL, SITE_URL } from '../api';
 
 export default {
-    data() {
-        return {
-            outfits: [],
-            isLoading: false,
-            error: null,
-            siteUrl: SITE_URL,
-            currentEditOutfitId: null,
-            outfitPreviewSrc: '',
-            outfitImageFile: null,
-            clothingToDeleteId: null,
-            editSelectedAliases: [],
-            editUserSearchQuery: '',
-            editSearchResults: [],
-        };
-    },
-    mounted() {
-        this.fetchOutfits();
+  data() {
+    return {
+      outfits: [],
+      isLoading: false,
+      error: null,
+      siteUrl: SITE_URL,
+      currentEditOutfitId: null,
+      outfitPreviewSrc: '',
+      outfitImageFile: null,
+      clothingToDeleteId: null,
+      editSelectedAliases: [],
+      editUserSearchQuery: '',
+      editSearchResults: [],
+    };
+  },
+  mounted() {
+    this.fetchOutfits();
 
-        document.body.addEventListener('click', async (e) => {
-            const editBtn = e.target.closest('button[data-target="#editOutfitModal"]');
-            if (editBtn) {
-                e.preventDefault();
-                const outfitId = editBtn.getAttribute('data-outfit-id');
-                if (outfitId) {
-                    this.currentEditOutfitId = outfitId;
-                    await this.fetchOutfitById(outfitId);
-                    $('#editOutfitModal').modal('show');
-                }
-            }
-        });
+    document.body.addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('button[data-target="#editOutfitModal"]');
+      if (editBtn) {
+        e.preventDefault();
+        this.currentEditOutfitId = editBtn.dataset.outfitId;
+        await this.fetchOutfitById(this.currentEditOutfitId);
+        $('#editOutfitModal').modal('show');
+      }
 
-        document.body.addEventListener('click', (e) => {
-            const deleteBtn = e.target.closest('.btn-item-delete');
-            if (deleteBtn) {
-                const id = deleteBtn.getAttribute('data-id');
-                if (id) {
-                    this.clothingToDeleteId = id;
-                    $('#editOutfitModal').modal('hide');
-                    $('#confirmDeleteClothingModal').modal('show');
-                }
-            }
-        });
+      const clothingDelBtn = e.target.closest('.btn-item-delete');
+      if (clothingDelBtn) {
+        this.clothingToDeleteId = clothingDelBtn.dataset.id;
+        $('#editOutfitModal').modal('hide');
+        $('#confirmDeleteClothingModal').modal('show');
+      }
 
-        document.getElementById('confirmClothingDeleteBtn').addEventListener('click', async () => {
-            if (!this.clothingToDeleteId) return;
+      const delOutfitBtn = e.target.closest('.btn-delete');
+      if (delOutfitBtn) {
+        this.currentEditOutfitId = delOutfitBtn.dataset.outfitId;
+        $('#confirmDeleteOutfitModal').modal('show');
+      }
 
-            try {
-                const response = await fetch(`${API_URL}/stylist-cloth/${this.clothingToDeleteId}`, {
-                    method: 'DELETE',
-                });
+      const previewDelBtn = e.target.closest('.btn-capsule-preview-delete');
+      if (previewDelBtn) {
+        const previewId = previewDelBtn.dataset.previewId;
+        const previewCard = document.querySelector(`[data-preview-id="${previewId}"]`);
+        if (previewCard) {
+          previewCard.remove();
+          const outfitId = previewCard.dataset.id;
+          const originalCb = document.querySelector(`.select-checkbox[data-outfit-id="${outfitId}"]`);
+          if (originalCb) originalCb.checked = false;
+          this.toggleCapsuleBtn();
+        }
+      }
+    });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText);
-                }
+    document.body.addEventListener('change', (e) => {
+      if (e.target.matches('.select-checkbox')) {
+        this.toggleCapsuleBtn();
+      }
+    });
 
-                const deletedCard = document.querySelector(`.btn-item-delete[data-id="${this.clothingToDeleteId}"]`)
-                    ?.closest('.card');
-                if (deletedCard) deletedCard.remove();
+    document.getElementById('createCapsuleBtn').addEventListener('click', () => {
+      this.prepareCapsulePreview();
+      $('#createCapsuleModal').modal('show');
+    });
 
-                this.clothingToDeleteId = null;
-                $('#confirmDeleteClothingModal').modal('hide');
-                $('#editOutfitModal').modal('show');
-            } catch (err) {
-                console.error("Error deleting clothing:", err);
-                alert("Не удалось удалить элемент одежды.");
-            }
-        });
-
-        document.body.addEventListener('click', (e) => {
-            const deleteOutfitBtn = e.target.closest('.btn-delete');
-            if (deleteOutfitBtn) {
-                const id = deleteOutfitBtn.getAttribute('data-outfit-id');
-                if (id) {
-                    this.currentEditOutfitId = id;
-                    $('#confirmDeleteOutfitModal').modal('show');
-                }
-            }
-        });
-
-
-        document.getElementById('confirmOutfitDeleteBtn').addEventListener('click', async () => {
-            if (!this.currentEditOutfitId) return;
-
-            try {
-                const response = await fetch(`${API_URL}/stylist-outfit/${this.currentEditOutfitId}`, {
-                    method: 'DELETE',
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText);
-                }
-
-                $('#confirmDeleteOutfitModal').modal('hide');
-                this.showSuccess('deleteSuccess');
-                this.fetchOutfits();
-            } catch (err) {
-                console.error('Ошибка при удалении образа:', err);
-                alert('Не удалось удалить образ.');
-            }
-        });
-
-        const checkboxes = document.body.querySelectorAll('.select-checkbox');
-        const capsuleBtn = document.getElementById('createCapsuleBtn');
-
-        document.body.addEventListener('change', (e) => {
-            if (e.target.matches('.select-checkbox')) {
-                const selected = this.getSelectedOutfits();
-                capsuleBtn.disabled = selected.length < 3;
-            }
-        });
-
-        capsuleBtn.addEventListener('click', () => {
-            const selected = this.getSelectedOutfits();
-            const selectedOutfitsPreview = document.getElementById('selectedOutfitsPreview');
-            selectedOutfitsPreview.innerHTML = '';
-
-            selected.forEach((card, index) => {
-                const clone = card.cloneNode(true);
-                clone.classList.remove('col-md-3');
-                clone.classList.add('col-md-4', 'mb-3');
-                clone.setAttribute('data-preview-id', `preview-${index}`);
-
-                clone.querySelector('.btn-warning')?.remove();
-                clone.querySelector('.select-checkbox')?.remove();
-
-                const deleteBtn = clone.querySelector('.btn-delete');
-                const btnContainer = clone.querySelector('.float-right');
-                if (deleteBtn && btnContainer) {
-                    deleteBtn.classList.replace('btn-delete', 'btn-capsule-preview-delete');
-                    deleteBtn.setAttribute('data-preview-id', `preview-${index}`);
-                }
-
-                selectedOutfitsPreview.appendChild(clone);
-            });
-
-            $('#createCapsuleModal').modal('show');
-        });
-
-        document.body.addEventListener('click', (e) => {
-            const deleteBtn = e.target.closest('.btn-capsule-preview-delete');
-            if (deleteBtn) {
-                const previewId = deleteBtn.getAttribute('data-preview-id');
-                const previewCard = document.querySelector(`[data-preview-id="${previewId}"]`);
-                if (previewCard) {
-                    previewCard.remove();
-                    const outfitId = previewCard.getAttribute('data-id');
-                    const originalCheckbox = document.querySelector(`.select-checkbox[data-outfit-id="${outfitId}"]`);
-                    if (originalCheckbox) {
-                        originalCheckbox.checked = false;
-                    }
-                    const stillSelected = this.getSelectedOutfits();
-                    capsuleBtn.disabled = stillSelected.length < 3;
-                }
-            }
-        });
-
-        const capsuleImageInput = document.getElementById('capsuleImage');
+    const capsuleImageInput = document.getElementById('capsuleImage');
+    document.getElementById('capsuleImageUploadArea').addEventListener('click', () => {
+      capsuleImageInput.click();
+    });
+    capsuleImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
         const capsulePreview = document.getElementById('capsulePreview');
+        capsulePreview.src = URL.createObjectURL(file);
+        capsulePreview.style.display = 'block';
+        document.querySelector('#capsuleImageUploadArea .upload-overlay').remove();
+      }
+    });
 
-        document.getElementById('capsuleImageUploadArea').addEventListener('click', () => {
-            capsuleImageInput.click();
-        });
-
-        capsuleImageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                capsulePreview.src = URL.createObjectURL(file);
-                capsulePreview.style.display = 'block';
-                const uploadOverlay = document.querySelector('#capsuleImageUploadArea .upload-overlay');
-                if (uploadOverlay) {
-                    uploadOverlay.remove();
-                }
-            }
-        });
-
-        document.getElementById('submitCapsule').addEventListener('click', async () => {
-            const selected = this.getSelectedOutfits();
-
-            if (selected.length < 3) {
-                alert("Выберите минимум 3 образа для создания капсулы.");
-                return;
-            }
-
-            const title = document.getElementById('capsuleTitle').value;
-            const season1 = document.getElementById('outfitSeason1').value;
-            const season2 = document.getElementById('outfitSeason2').value;
-            const description = document.getElementById('capsuleDescription').value;
-            const imageInput = document.getElementById('capsuleImage');
-            const imageFile = imageInput.files[0];
-
-            const selectedIds = selected.map(card => card.getAttribute('data-id'));
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('season1', season1);
-            formData.append('season2', season2 || '');
-            formData.append('description', description || '');
-            selectedIds.forEach(id => formData.append('outfit_ids[]', id));
-            if (imageFile) formData.append('image', imageFile);
-
-            try {
-                const response = await fetch(`${API_URL}/stylist-capsule`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(errText);
-                }
-
-                $('#createCapsuleModal').modal('hide');
-                this.showSuccess('createCapsuleSuccess');
-            } catch (err) {
-                console.error("Ошибка при создании капсулы:", err);
-                alert("Не удалось создать капсулу.");
-            }
-        });
-
+    this.setupConfirmButtons();
+  },
+  methods: {
+    async fetchOutfits() {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const res = await fetch(`${API_URL}/stylist-outfits`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        this.outfits = await res.json();
+      } catch (err) {
+        this.error = `Ошибка при загрузке данных: ${err.message}`;
+        console.error(err);
+      } finally {
+        this.isLoading = false;
+      }
     },
-    methods: {
-        async fetchOutfits() {
-            this.isLoading = true;
-            this.error = null;
-            try {
-                const response = await fetch(`${API_URL}/stylist-outfits`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
-                this.outfits = data;
-            } catch (err) {
-                this.error = 'Ошибка при загрузке данных: ' + err.message;
-                console.error(err);
-            } finally {
-                this.isLoading = false;
-            }
-        },
 
-        async fetchOutfitById(id) {
-            try {
-                const response = await fetch(`${API_URL}/stylist-outfit/${id}`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const outfit = await response.json();
+    async fetchOutfitById(id) {
+      try {
+        const res = await fetch(`${API_URL}/stylist-outfit/${id}`);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const outfit = await res.json();
 
-                const form = document.getElementById('editOutfitForm');
-                form.outfitTitle.value = outfit.title || '';
-                form.category.value = outfit.label || '';
-                form.season.value = outfit.season || '';
-                form.outfitDescription.value = outfit.description || '';
+        const form = document.getElementById('editOutfitForm');
+        form.outfitTitle.value = outfit.title || '';
+        form.category.value = outfit.label || '';
+        form.season.value = outfit.season || '';
+        form.outfitDescription.value = outfit.description || '';
 
-                this.outfitPreviewSrc = this.siteUrl + '/app-images/' + outfit.image_url;
-                this.outfitImageFile = null;
+        this.outfitPreviewSrc = `${this.siteUrl}/app-images/${outfit.image_url}`;
+        this.outfitImageFile = null;
 
-                this.editSelectedAliases = [];
-                if (!outfit.is_public) {
-                    const usersResponse = await fetch(`${API_URL}/stylist-outfit/${id}/users`);
-                    if (usersResponse.ok) {
-                        const users = await usersResponse.json();
-                        this.editSelectedAliases = users.map(user => user.alias);
-                    }
-                }
+        this.editSelectedAliases = [];
+        if (!outfit.is_public) {
+          const userRes = await fetch(`${API_URL}/stylist-outfit/${id}/users`);
+          if (userRes.ok) {
+            const users = await userRes.json();
+            this.editSelectedAliases = users.map(u => u.alias);
+          }
+        }
 
-                const container = document.getElementById('clothingItemsContainer');
-                container.innerHTML = '';
-
-                if (Array.isArray(outfit.clothes) && outfit.clothes.length > 0) {
-                    outfit.clothes.forEach(cloth => {
-                        const card = document.createElement('div');
-                        card.classList.add('card', 'mb-3', 'ml-2', 'mr-2');
-                        card.style.width = '13rem';
-
-                        card.innerHTML = `
-          <img src="${this.siteUrl}/app-images/${cloth.image_url}" class="card-img-top" style="height: 200px; object-fit: fit;" alt="${cloth.title}">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <span class="item-title">${cloth.title}</span>
-            <button type="button" class="btn btn-sm btn-danger remove-selected ml-auto btn-item-delete" data-id="${cloth.id}">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        `;
-
-                        container.appendChild(card);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading outfit details:', error);
-                alert('Ошибка при загрузке данных образа');
-            }
-        },
-        triggerFileInput() {
-            const fileInput = document.getElementById('outfitImageUpload');
-            if (fileInput) {
-                fileInput.click();
-            }
-        },
-
-        onFileChange(event) {
-            const file = event.target.files[0];
-            if (file) {
-                this.outfitImageFile = file;
-                this.outfitPreviewSrc = URL.createObjectURL(file);
-            }
-        },
-
-        async fetchOutfitById(id) {
-            try {
-                const response = await fetch(`${API_URL}/stylist-outfit/${id}`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const outfit = await response.json();
-
-                const form = document.getElementById('editOutfitForm');
-                form.outfitTitle.value = outfit.title || '';
-                form.category.value = outfit.label || '';
-                form.season.value = outfit.season || '';
-                form.outfitDescription.value = outfit.description || '';
-
-                this.outfitPreviewSrc = this.siteUrl + '/app-images/' + outfit.image_url;
-                this.outfitImageFile = null;
-
-                const container = document.getElementById('clothingItemsContainer');
-                container.innerHTML = '';
-
-                if (Array.isArray(outfit.clothes) && outfit.clothes.length > 0) {
-                    outfit.clothes.forEach(cloth => {
-                        const card = document.createElement('div');
-                        card.classList.add('card', 'mb-3', 'ml-2', 'mr-2');
-                        card.style.width = '13rem';
-
-                        card.innerHTML = `
+        const container = document.getElementById('clothingItemsContainer');
+        container.innerHTML = '';
+        (outfit.clothes || []).forEach(cloth => {
+          const card = document.createElement('div');
+          card.className = 'card mb-3 ml-2 mr-2';
+          card.style.width = '13rem';
+          card.innerHTML = `
             <img src="${this.siteUrl}/app-images/${cloth.image_url}" class="card-img-top" style="height: 200px; object-fit: fit;" alt="${cloth.title}">
             <div class="card-body d-flex justify-content-between align-items-center">
               <span class="item-title">${cloth.title}</span>
@@ -655,93 +453,160 @@ export default {
               </button>
             </div>
           `;
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading outfit:', error);
+        alert('Ошибка при загрузке данных образа');
+      }
+    },
 
-                        container.appendChild(card);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading outfit details:', error);
-                alert('Ошибка при загрузке данных образа');
-            }
-        },
-        async submitEditForm(event) {
-            event.preventDefault();
+    async submitEditForm(event) {
+      event.preventDefault();
+      const form = document.getElementById('editOutfitForm');
+      const formData = new FormData();
+      formData.append('title', form.outfitTitle.value);
+      formData.append('category', form.category.value);
+      formData.append('season', form.season.value);
+      formData.append('description', form.outfitDescription.value);
+      if (this.outfitImageFile) formData.append('image', this.outfitImageFile);
+      this.editSelectedAliases.forEach(alias => formData.append('userAliases[]', alias));
 
-            const form = document.getElementById('editOutfitForm');
-            const formData = new FormData();
+      try {
+        const res = await fetch(`${API_URL}/stylist-outfit/${this.currentEditOutfitId}`, {
+          method: 'PUT',
+          body: formData,
+        });
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(`Ошибка при обновлении образа: ${res.status} - ${err}`);
+        }
+        $('#editOutfitModal').modal('hide');
+        this.showSuccess('saveChangesSuccess');
+        this.fetchOutfits();
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при сохранении изменений');
+      }
+    },
 
-            formData.append('title', form.outfitTitle.value);
-            formData.append('category', form.category.value);
-            formData.append('season', form.season.value);
-            formData.append('description', form.outfitDescription.value);
+    editSearchUsers() {
+      if (!this.editUserSearchQuery.trim()) {
+        this.editSearchResults = [];
+        return;
+      }
+      fetch(`${API_URL}/stylist-users/search?alias=${this.editUserSearchQuery}`)
+        .then(res => res.json())
+        .then(data => (this.editSearchResults = data))
+        .catch(err => {
+          console.error('Error searching users:', err);
+          this.editSearchResults = [];
+        });
+    },
 
-            if (this.outfitImageFile) {
-                formData.append('image', this.outfitImageFile);
-            }
+    editAddAlias(alias) {
+      if (!this.editSelectedAliases.includes(alias)) {
+        this.editSelectedAliases.push(alias);
+      }
+    },
 
-            this.editSelectedAliases.forEach(alias => {
-                formData.append('userAliases[]', alias);
-            });
+    editRemoveAlias(alias) {
+      this.editSelectedAliases = this.editSelectedAliases.filter(a => a !== alias);
+    },
 
-            try {
-                const response = await fetch(`${API_URL}/stylist-outfit/${this.currentEditOutfitId}`, {
-                    method: 'PUT',
-                    body: formData,
-                });
+    showSuccess(alertId) {
+      const el = document.getElementById(alertId);
+      if (el) {
+        el.style.display = 'block';
+        setTimeout(() => (el.style.display = 'none'), 3000);
+      }
+    },
 
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(`Ошибка при обновлении образа: ${response.status} - ${errText}`);
-                }
+    getSelectedOutfits() {
+      return Array.from(document.querySelectorAll('.select-checkbox:checked')).map(cb => cb.closest('[data-id]'));
+    },
 
-                const result = await response.json();
-                $('#editOutfitModal').modal('hide');
-                this.showSuccess('saveChangesSuccess');
-                this.fetchOutfits();
-            } catch (err) {
-                console.error(err);
-                alert('Ошибка при сохранении изменений');
-            }
-        },
-        async editSearchUsers() {
-            if (this.editUserSearchQuery.trim().length === 0) {
-                this.editSearchResults = [];
-                return;
-            }
+    toggleCapsuleBtn() {
+      const selected = this.getSelectedOutfits();
+      document.getElementById('createCapsuleBtn').disabled = selected.length < 3;
+    },
 
-            try {
-                const response = await fetch(`${API_URL}/stylist-users/search?alias=${this.editUserSearchQuery}`);
-                this.editSearchResults = await response.json();
-            } catch (error) {
-                console.error('Error searching users:', error);
-                this.editSearchResults = [];
-            }
-        },
+    prepareCapsulePreview() {
+      const selected = this.getSelectedOutfits();
+      const previewContainer = document.getElementById('selectedOutfitsPreview');
+      previewContainer.innerHTML = '';
+      selected.forEach((card, idx) => {
+        const clone = card.cloneNode(true);
+        clone.classList.replace('col-md-3', 'col-md-4');
+        clone.classList.add('mb-3');
+        clone.dataset.previewId = `preview-${idx}`;
+        clone.querySelector('.btn-warning')?.remove();
+        clone.querySelector('.select-checkbox')?.remove();
+        const delBtn = clone.querySelector('.btn-delete');
+        if (delBtn) {
+          delBtn.classList.replace('btn-delete', 'btn-capsule-preview-delete');
+          delBtn.dataset.previewId = `preview-${idx}`;
+        }
+        previewContainer.appendChild(clone);
+      });
+    },
 
-        editAddAlias(alias) {
-            if (!this.editSelectedAliases.includes(alias)) {
-                this.editSelectedAliases.push(alias);
-            }
-        },
+    setupConfirmButtons() {
+      document.getElementById('confirmClothingDeleteBtn').addEventListener('click', async () => {
+        if (!this.clothingToDeleteId) return;
+        try {
+          const res = await fetch(`${API_URL}/stylist-cloth/${this.clothingToDeleteId}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error(await res.text());
+          document.querySelector(`.btn-item-delete[data-id="${this.clothingToDeleteId}"]`)?.closest('.card')?.remove();
+          this.clothingToDeleteId = null;
+          $('#confirmDeleteClothingModal').modal('hide');
+          $('#editOutfitModal').modal('show');
+        } catch (err) {
+          console.error("Error deleting clothing:", err);
+          alert("Не удалось удалить элемент одежды.");
+        }
+      });
 
-        editRemoveAlias(alias) {
-            this.editSelectedAliases = this.editSelectedAliases.filter(a => a !== alias);
-        },
+      document.getElementById('confirmOutfitDeleteBtn').addEventListener('click', async () => {
+        if (!this.currentEditOutfitId) return;
+        try {
+          const res = await fetch(`${API_URL}/stylist-outfit/${this.currentEditOutfitId}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error(await res.text());
+          $('#confirmDeleteOutfitModal').modal('hide');
+          this.showSuccess('deleteSuccess');
+          this.fetchOutfits();
+        } catch (err) {
+          console.error('Ошибка при удалении образа:', err);
+          alert('Не удалось удалить образ.');
+        }
+      });
 
-        showSuccess(alertId) {
-            const el = document.getElementById(alertId);
-            if (el) {
-                el.style.display = 'block';
-                setTimeout(() => {
-                    el.style.display = 'none';
-                }, 3000);
-            }
-        },
-        getSelectedOutfits() {
-            return Array.from(document.querySelectorAll('.select-checkbox:checked')).map(cb =>
-                cb.closest('[data-id]')
-            );
-        },
-    }
+      document.getElementById('submitCapsule').addEventListener('click', async () => {
+        const selected = this.getSelectedOutfits();
+        if (selected.length < 3) {
+          alert("Выберите минимум 3 образа для создания капсулы.");
+          return;
+        }
+        const formData = new FormData();
+        formData.append('title', document.getElementById('capsuleTitle').value);
+        formData.append('season1', document.getElementById('outfitSeason1').value);
+        formData.append('season2', document.getElementById('outfitSeason2').value || '');
+        formData.append('description', document.getElementById('capsuleDescription').value || '');
+        selected.forEach(card => formData.append('outfit_ids[]', card.dataset.id));
+        const imageFile = document.getElementById('capsuleImage').files[0];
+        if (imageFile) formData.append('image', imageFile);
+
+        try {
+          const res = await fetch(`${API_URL}/stylist-capsule`, { method: 'POST', body: formData });
+          if (!res.ok) throw new Error(await res.text());
+          $('#createCapsuleModal').modal('hide');
+          this.showSuccess('createCapsuleSuccess');
+        } catch (err) {
+          console.error("Ошибка при создании капсулы:", err);
+          alert("Не удалось создать капсулу.");
+        }
+      });
+    },
+  },
 };
 </script>
