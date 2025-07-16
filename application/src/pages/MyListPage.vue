@@ -50,9 +50,8 @@
     <div class="space"></div>
   </div>
 </template>
-
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { API_URL, SITE_URL } from '../api'
 
 const currentTab = ref('outfits')
@@ -61,18 +60,15 @@ const currentTabQuantity = ref('0')
 
 const outfits = ref([])
 const capsulas = ref([])
-
-const outfitPage = ref(1)
-const capsulaPage = ref(1)
-const pageSize = 6
 const loading = ref(false)
 
 function switchTab(tab) {
   currentTab.value = tab
   updateTabTitleAndQuantity()
+
   if ((tab === 'outfits' && outfits.value.length === 0) ||
       (tab === 'capsulas' && capsulas.value.length === 0)) {
-    fetchLikes(getCurrentPage())
+    fetchMyList()
   }
 }
 
@@ -86,42 +82,60 @@ function updateTabTitleAndQuantity() {
   }
 }
 
-function toggleOutfitLike(outfit) {
-  outfit.liked = !outfit.liked
-  updateLike(outfit.id, 'outfits', outfit.liked)
-}
+async function fetchMyList() {
+  if (loading.value) return
+  loading.value = true
 
-function toggleCapsulaLike(capsula) {
-  capsula.liked = !capsula.liked
-  updateLike(capsula.id, 'capsulas', capsula.liked)
-}
+  try {
+    console.log('SITE_URL:', SITE_URL)
+    console.log('Fetching user-my-list with user_id:', localStorage.getItem('user_id') || '2')
 
-function goToStore(link) {
-  const tg = window.Telegram?.WebApp
-  if (tg?.openLink) {
-    tg.openLink(link, { try_instant_view: true })
-  } else {
-    window.open(link, '_blank')
+    const res = await fetch(`${API_URL}/user-my-list`, {
+      headers: {
+        'x-user-id': localStorage.getItem('user_id')
+      }
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch my list: status ${res.status}`)
+    }
+
+    const data = await res.json()
+    console.log('API response data:', data)
+
+    outfits.value = data.outfits.map(o => {
+      const imageUrl = `${SITE_URL}/app-images/${o.image_url}`
+      console.log('Outfit image URL:', imageUrl)
+      return {
+        id: o.id,
+        image: imageUrl,
+        title: o.title,
+        season: o.season,
+        style: o.label
+      }
+    })
+
+    capsulas.value = data.capsulas.map(c => {
+      const imageUrl = `${SITE_URL}/app-images/${c.image_url}`
+      console.log('Capsula image URL:', imageUrl)
+      return {
+        id: c.id,
+        image: imageUrl,
+        title: c.title,
+        season: c.season_1 || c.season_2 || '',
+        count: c.quantity
+      }
+    })
+
+    updateTabTitleAndQuantity()
+  } catch (err) {
+    console.error('Fetch error:', err)
+  } finally {
+    loading.value = false
   }
 }
 
-function handleScroll() {
-  const bottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100
-  if (bottom) fetchLikes(getCurrentPage())
-}
-
-function getCurrentPage() {
-  if (currentTab.value === 'outfits') return outfitPage.value
-  if (currentTab.value === 'capsulas') return capsulaPage.value
-  return 1
-}
-
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  fetchMyList()
 })
 </script>
-
