@@ -41,7 +41,6 @@ router.get("/", async (req, res) => {
   `;
 
   try {
-    // 1. Fetch public outfits
     const outfitResult = await pool.query(outfitQuery, values);
     const outfits = outfitResult.rows;
 
@@ -49,7 +48,6 @@ router.get("/", async (req, res) => {
 
     const outfitIds = outfits.map(o => o.id);
 
-    // 2. Fetch liked outfits for this user
     const likedResult = await pool.query(
       `SELECT liked_id FROM users_liked 
        WHERE liked_type = 'outfits' AND user_id = $1 AND liked_id = ANY($2)`,
@@ -58,7 +56,6 @@ router.get("/", async (req, res) => {
 
     const likedSet = new Set(likedResult.rows.map(r => r.liked_id));
 
-    // 3. Attach liked = true/false to each outfit
     const enrichedOutfits = outfits.map(o => ({
       ...o,
       liked: likedSet.has(o.id),

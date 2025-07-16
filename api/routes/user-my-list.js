@@ -16,10 +16,18 @@ router.get('/', async (req, res) => {
         o.image_url,
         o.title,
         o.season,
-        o.label
+        o.label,
+        CASE 
+          WHEN ul.id IS NOT NULL THEN true 
+          ELSE false 
+        END AS liked
       FROM outfits o
       INNER JOIN users_outfits uo 
         ON uo.outfit_id = o.id
+      LEFT JOIN users_liked ul 
+        ON ul.liked_type = 'outfits' 
+        AND ul.liked_id = o.id 
+        AND ul.user_id = $1
       WHERE uo.user_id = $1
       ORDER BY o.id
     `;
@@ -36,10 +44,18 @@ router.get('/', async (req, res) => {
           SELECT COUNT(*) 
           FROM capsulas_superset cs 
           WHERE cs.capsulas_id = c.id
-        )::INT AS quantity
+        )::INT AS quantity,
+        CASE 
+          WHEN ul.id IS NOT NULL THEN true 
+          ELSE false 
+        END AS liked
       FROM capsulas c
       INNER JOIN users_capsulas uc 
         ON uc.capsulas_id = c.id
+      LEFT JOIN users_liked ul 
+        ON ul.liked_type = 'capsulas' 
+        AND ul.liked_id = c.id 
+        AND ul.user_id = $1
       WHERE uc.user_id = $1
       ORDER BY c.id
     `;

@@ -24,6 +24,9 @@
             <div class="attributes">
               <div class="title">{{ outfit.title }}</div>
               <span class="season-label">{{ outfit.season }} | {{ outfit.style }}</span>
+              <div class="like">
+                <img :src="outfit.liked ? '/images/heart-active.png' : '/images/heart.png'" class="like-btn" @click.prevent.stop="toggleOutfitLike(outfit)">
+              </div>
             </div>
           </router-link>
         </li>
@@ -41,6 +44,9 @@
               <span class="quantity">{{ capsula.count }} образы</span>
               <ul class="right">
                 <li class="season-tag">{{ capsula.season }}</li>
+                <li class="like">
+                  <img :src="capsula.liked ? '/images/heart-active.png' : '/images/heart.png'" class="like-btn" @click.prevent.stop="toggleCapsulaLike(capsula)">
+                </li>
               </ul>
             </div>
           </router-link>
@@ -82,14 +88,36 @@ function updateTabTitleAndQuantity() {
   }
 }
 
+function toggleOutfitLike(outfit) {
+  outfit.liked = !outfit.liked
+  updateLike(outfit.id, 'outfits', outfit.liked)
+}
+
+function toggleCapsulaLike(capsula) {
+  capsula.liked = !capsula.liked
+  updateLike(capsula.id, 'capsulas', capsula.liked)
+}
+
+async function updateLike(id, type, liked) {
+  try {
+    await fetch(`${API_URL}/like/${id}`, {
+      method: liked ? 'POST' : 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': localStorage.getItem('user_id') || '1'
+      },
+      body: JSON.stringify({ type })
+    })
+  } catch (err) {
+    console.error('Failed to update like:', err)
+  }
+}
+
 async function fetchMyList() {
   if (loading.value) return
   loading.value = true
 
   try {
-    console.log('SITE_URL:', SITE_URL)
-    console.log('Fetching user-my-list with user_id:', localStorage.getItem('user_id') || '2')
-
     const res = await fetch(`${API_URL}/user-my-list`, {
       headers: {
         'x-user-id': localStorage.getItem('user_id')
@@ -101,31 +129,24 @@ async function fetchMyList() {
     }
 
     const data = await res.json()
-    console.log('API response data:', data)
 
-    outfits.value = data.outfits.map(o => {
-      const imageUrl = `${SITE_URL}/app-images/${o.image_url}`
-      console.log('Outfit image URL:', imageUrl)
-      return {
-        id: o.id,
-        image: imageUrl,
-        title: o.title,
-        season: o.season,
-        style: o.label
-      }
-    })
+    outfits.value = data.outfits.map(o => ({
+      id: o.id,
+      image: `${SITE_URL}/app-images/${o.image_url}`,
+      title: o.title,
+      season: o.season,
+      style: o.label,
+      liked: o.liked
+    }))
 
-    capsulas.value = data.capsulas.map(c => {
-      const imageUrl = `${SITE_URL}/app-images/${c.image_url}`
-      console.log('Capsula image URL:', imageUrl)
-      return {
-        id: c.id,
-        image: imageUrl,
-        title: c.title,
-        season: c.season_1 || c.season_2 || '',
-        count: c.quantity
-      }
-    })
+    capsulas.value = data.capsulas.map(c => ({
+      id: c.id,
+      image: `${SITE_URL}/app-images/${c.image_url}`,
+      title: c.title,
+      season: c.season_1 || c.season_2 || '',
+      count: c.quantity,
+      liked: c.liked
+    }))
 
     updateTabTitleAndQuantity()
   } catch (err) {

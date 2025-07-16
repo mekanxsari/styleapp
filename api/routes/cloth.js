@@ -58,7 +58,7 @@ router.get("/:id", async (req, res) => {
         ON ul.liked_type = 'outfits'
         AND ul.liked_id = o.id
         AND ul.user_id = $2
-      WHERE os.clothes_id = $1
+      WHERE os.clothes_id = $1 AND o.is_public = true
       ORDER BY o.id
     `;
     const outfitsResult = await pool.query(outfitsQuery, [id, userId]);
@@ -81,7 +81,7 @@ router.get("/:id", async (req, res) => {
         ON ul.liked_type = 'capsulas'
         AND ul.liked_id = c.id
         AND ul.user_id = $2
-      WHERE os.clothes_id = $1
+      WHERE os.clothes_id = $1 AND c.is_public = true
       GROUP BY c.id, ul.id
       ORDER BY c.id
     `;
