@@ -4,7 +4,7 @@
       <ul class="profile-heading">
         <li class="username">{{ userDisplayName }}</li>
         <li class="spisok">
-          <router-link to="/likes">Мои списки</router-link>
+          <router-link to="/profile/my-list">Мои списки</router-link>
         </li>
       </ul>
 

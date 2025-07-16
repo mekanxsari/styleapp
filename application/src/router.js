@@ -13,6 +13,7 @@ import PersonalInformationPage from './pages/ProfilePersonalInformationPage.vue'
 import ProfileSizePage from './pages/ProfileSizePage.vue';
 import ProfileAdditionalPage from './pages/ProfileAdditionalPage.vue';
 import ProfileImageUploadPage from './pages/ProfileImageUploadPage.vue';
+import MyListPage from './pages/MyListPage.vue';
 
 const routes = [
   { path: '/', component: CapsulasPage },
@@ -26,7 +27,8 @@ const routes = [
   { path: '/profile/personal', component: PersonalInformationPage },
   { path: '/profile/sizes', component: ProfileSizePage },
   { path: '/profile/additional', component: ProfileAdditionalPage },
-  { path: '/profile/upload', component: ProfileImageUploadPage }
+  { path: '/profile/upload', component: ProfileImageUploadPage },
+  { path: '/profile/my-list', component: MyListPage }
 ];
 
 export const router = createRouter({
@@ -34,38 +36,38 @@ export const router = createRouter({
   routes
 });
 
-router.beforeEach(async (to, from, next) => {
-  if (to.path === '/login') {
-    return next();
-  }
+// router.beforeEach(async (to, from, next) => {
+//   if (to.path === '/login') {
+//     return next();
+//   }
 
-  const token = localStorage.getItem('session_token');
-  const user_id = localStorage.getItem('user_id');
+//   const token = localStorage.getItem('session_token');
+//   const user_id = localStorage.getItem('user_id');
 
-  if (!token || !user_id) {
-    return next('/login');
-  }
+//   if (!token || !user_id) {
+//     return next('/login');
+//   }
 
-  try {
-    const response = await fetch(`${API_URL}/check-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, user_id })
-    });
+//   try {
+//     const response = await fetch(`${API_URL}/check-session`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ token, user_id })
+//     });
 
-    const result = await response.json();
+//     const result = await response.json();
 
-    if (result.valid) {
-      return next();
-    } else {
-      localStorage.removeItem('session_token');
-      localStorage.removeItem('user_id');
-      return next('/login');
-    }
-  } catch (err) {
-    console.error('Session check failed:', err);
-    localStorage.removeItem('session_token');
-    localStorage.removeItem('user_id');
-    return next('/login');
-  }
-});
+//     if (result.valid) {
+//       return next();
+//     } else {
+//       localStorage.removeItem('session_token');
+//       localStorage.removeItem('user_id');
+//       return next('/login');
+//     }
+//   } catch (err) {
+//     console.error('Session check failed:', err);
+//     localStorage.removeItem('session_token');
+//     localStorage.removeItem('user_id');
+//     return next('/login');
+//   }
+// });

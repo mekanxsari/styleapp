@@ -15,6 +15,7 @@ const userProfile = require('./user-profile');
 const userPersonal = require('./user-personal');
 const userSizes = require('./user-sizes');
 const userAdditional = require('./user-additional');
+const userMyList = require('./user-my-list');
 
 router.use('/auth', authRouter);
 router.use('/check-session', checkSessionRouter);
@@ -29,6 +30,7 @@ router.use('/user-profile', userProfile);
 router.use('/user-personal', userPersonal);
 router.use('/user-sizes', userSizes);
 router.use('/user-additional', userAdditional);
+router.use('/user-my-list', userMyList);
 
 //STYLIST DASHBOARD API
 const authStylistRouter = require('./stylist-auth');
