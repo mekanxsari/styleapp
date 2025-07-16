@@ -13,27 +13,28 @@ const storage = multer.diskStorage({
   destination: uploadDir,
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const hash = crypto.randomBytes(3).toString('hex');
+    const hash = crypto.randomBytes(4).toString('hex');
     cb(null, `${hash}${ext}`);
   },
 });
+
 const upload = multer({ storage });
 
 router.post('/', upload.array('images', 10), async (req, res) => {
   const userId = req.headers['x-user-id'];
 
   if (!userId) {
-    return res.status(400).json({ message: "Missing user_id" });
+    return res.status(400).json({ message: 'Missing user_id' });
   }
 
   if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ success: false, message: "Images are required" });
+    return res.status(400).json({ success: false, message: 'Images are required' });
   }
 
   try {
-    const insertedRows = [];
-
     await pool.query('BEGIN');
+
+    const inserted = [];
 
     for (const file of req.files) {
       const imageUrl = file.filename;
@@ -43,16 +44,16 @@ router.post('/', upload.array('images', 10), async (req, res) => {
         [userId, imageUrl]
       );
 
-      insertedRows.push(result.rows[0]);
+      inserted.push(result.rows[0]);
     }
 
     await pool.query('COMMIT');
 
-    res.status(201).json({ success: true, images: insertedRows });
+    res.status(201).json({ success: true, images: inserted });
   } catch (error) {
     await pool.query('ROLLBACK');
-    console.error("Error uploading images:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 

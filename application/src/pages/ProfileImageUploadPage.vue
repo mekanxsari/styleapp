@@ -15,23 +15,17 @@
             :key="index"
             class="image-item"
           >
-            <img :src="image.url" :alt="'Uploaded image ' + (index + 1)" />
-            <button
-              @click="removeImage(index)"
-              class="remove-btn"
-              type="button"
-            >
-              ×
-            </button>
+            <img :src="image.url" :alt="'Image ' + (index + 1)" />
+            <button type="button" class="remove-btn" @click="removeImage(index)">×</button>
           </div>
 
           <div class="upload-rectangle" @click="triggerFileInput">
             <input
-              type="file"
               ref="fileInput"
-              @change="handleFileUpload"
+              type="file"
               accept="image/*"
               multiple
+              @change="handleFileUpload"
               style="display: none"
             />
             <p>Добавить</p>
@@ -47,7 +41,7 @@
 <script setup>
 import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { API_URL } from '../api'
+import { API_URL, SITE_URL } from '../api'
 
 const router = useRouter()
 const userId = localStorage.getItem('user_id')
@@ -61,24 +55,16 @@ function triggerFileInput() {
 
 function handleFileUpload(event) {
   const files = event.target.files
-  if (!files || files.length === 0) {
-    alert('Файл не выбран.')
-    return
-  }
+  if (!files || files.length === 0) return
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
     if (!file.type.startsWith('image/')) continue
 
-    const objectUrl = URL.createObjectURL(file)
-
-    uploadedImages.value.push({
-      url: objectUrl,
-      file: file,
-    })
+    const url = URL.createObjectURL(file)
+    uploadedImages.value.push({ file, url })
   }
 
-  // Delay resetting input for Telegram mobile browser compatibility
   setTimeout(() => {
     event.target.value = ''
   }, 100)
@@ -86,56 +72,49 @@ function handleFileUpload(event) {
 
 function removeImage(index) {
   const image = uploadedImages.value[index]
-  if (image?.url) {
-    URL.revokeObjectURL(image.url)
-  }
+  if (image?.url) URL.revokeObjectURL(image.url)
   uploadedImages.value.splice(index, 1)
 }
 
 onUnmounted(() => {
-  uploadedImages.value.forEach((img) => {
-    URL.revokeObjectURL(img.url)
-  })
+  uploadedImages.value.forEach((img) => URL.revokeObjectURL(img.url))
 })
 
 async function submitImages() {
-  if (uploadedImages.value.length === 0) {
-    alert('Пожалуйста, добавьте хотя бы одно изображение.')
+  if (!userId) {
+    alert('User ID not found.')
     return
   }
 
-  if (!userId) {
-    alert('User ID not found. Please log in.')
+  if (uploadedImages.value.length === 0) {
+    alert('Добавьте хотя бы одно изображение.')
     return
   }
 
   const formData = new FormData()
-  uploadedImages.value.forEach((imageObj) => {
-    formData.append('images', imageObj.file)
-  })
+  uploadedImages.value.forEach((img) => formData.append('images', img.file))
 
   try {
-    const response = await fetch(`${API_URL}/user-image`, {
+    const res = await fetch(`${API_URL}/user-image`, {
       method: 'POST',
       headers: {
         'x-user-id': userId,
-        // Don't set Content-Type here — browser handles it for FormData
       },
-      body: formData,
+      body: formData
     })
 
-    const data = await response.json()
+    const data = await res.json()
 
-    if (response.ok && data.success) {
+    if (res.ok && data.success) {
       uploadedImages.value.forEach((img) => URL.revokeObjectURL(img.url))
       uploadedImages.value = []
       router.push('/profile')
     } else {
-      alert('Ошибка при загрузке: ' + (data.message || 'Unknown error'))
+      alert('Ошибка загрузки: ' + (data.message || 'Неизвестная ошибка'))
     }
-  } catch (error) {
-    console.error('Ошибка при отправке:', error)
-    alert('Произошла ошибка при отправке данных.')
+  } catch (err) {
+    console.error('Upload error:', err)
+    alert('Произошла ошибка при загрузке.')
   }
 }
 </script>
