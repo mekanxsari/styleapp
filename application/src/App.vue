@@ -35,7 +35,7 @@ onUnmounted(() => {
 })
 
 useHead({
-  title: 'StyleApp',
+  title: 'Style App',
   meta: [
     {
       name: 'viewport',

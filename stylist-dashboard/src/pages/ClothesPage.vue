@@ -258,7 +258,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form id="createOutfitForm">
+          <form id="createOutfitForm" @submit.prevent>
             <div class="modal-body">
               <div class="form-group">
                 <label>Изображение</label>
@@ -316,11 +316,16 @@
                 <label>Назначить пользователям</label>
                 <input type="text" v-model="userSearchQuery" @input="searchUsers" class="form-control" placeholder="Введите алиас пользователя" />
                 <div class="mt-2">
-                  <button v-for="user in searchResults" :key="user.id" 
-                          @click="addAlias(user.alias)"
-                          class="btn btn-sm btn-outline-primary mr-1 mb-1">
+                  <button
+                    v-for="user in searchResults"
+                    :key="user.id"
+                    type="button"
+                    @click="addAlias(user.alias)"
+                    class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                  >
                     {{ user.alias }}
                   </button>
+
                 </div>
                 <div class="mt-2" style="display: flex;">
                   <span v-for="alias in selectedAliases" :key="alias" class="badge badge-info mr-1" style="display: inline-flex;align-items: center;padding:5px 5px;">
