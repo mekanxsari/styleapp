@@ -6,7 +6,7 @@
       </a>
       <ul class="navbar-nav ml-auto align-items-center">
         <li class="nav-item mx-2">
-          <router-link to="/" class="nav-link" active-class="active">Одежда</router-link>
+          <router-link to="/" class="nav-link" active-class="active">Вещи</router-link>
         </li>
         <li class="nav-item mx-2">
           <router-link to="/outfits" class="nav-link" active-class="active">Образы</router-link>

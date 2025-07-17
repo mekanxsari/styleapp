@@ -40,13 +40,8 @@
                                 <div class="outfit-img-container">
                                     <img :src="siteUrl + '/app-images/' + outfit.image_url" class="outfit-img"
                                         :alt="outfit.title" />
-                                    <input 
-    type="checkbox" 
-    class="select-checkbox" 
-    v-model="selectedOutfits" 
-    :value="outfit.id.toString()"
-    @change="toggleCapsuleBtn"
-/>
+                                    <input type="checkbox" class="select-checkbox" v-model="selectedOutfits"
+                                        :value="outfit.id.toString()" @change="toggleCapsuleBtn" />
                                 </div>
                                 <div class="outfit-title flex">
                                     {{ outfit.title }}
@@ -364,6 +359,38 @@ export default {
         };
     },
     methods: {
+        resetCapsuleForm() {
+            const form = document.getElementById('createCapsuleForm');
+            if (form) form.reset();
+
+            const preview = document.getElementById('capsulePreview');
+            const overlay = document.querySelector('#capsuleImageUploadArea .upload-overlay');
+
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+
+            if (!overlay) {
+                const uploadArea = document.getElementById('capsuleImageUploadArea');
+                uploadArea.innerHTML += `
+                <div class="upload-overlay" style="opacity: 1;">
+                    <div class="text-center">
+                        <i class="fas fa-camera fa-2x mb-2"></i>
+                        <p>Нажмите для загрузки изображения</p>
+                    </div>
+                </div>
+            `;
+            }
+
+            const fileInput = document.getElementById('capsuleImage');
+            if (fileInput) fileInput.value = '';
+
+            this.createUserSearchQuery = '';
+            this.createSearchResults = [];
+            this.createSelectedUserIds = [];
+            this.createSelectedUserAliases = [];
+        },
         async fetchOutfits(reset = false) {
             if (this.isLoading) return;
             this.isLoading = true;
@@ -637,7 +664,7 @@ export default {
                     if (!res.ok) throw new Error(await res.text());
                     $('#confirmDeleteOutfitModal').modal('hide');
                     this.showSuccess('deleteSuccess');
-                    this.fetchOutfits();
+                    this.fetchOutfits(true);
                 } catch (err) {
                     console.error('Ошибка при удалении образа:', err);
                     alert('Не удалось удалить образ.');
@@ -650,19 +677,31 @@ export default {
             if (selected.length < 3) {
                 return alert('Выберите минимум 3 образа для создания капсулы.');
             }
-            const formData = new FormData(document.getElementById('createCapsuleForm'));
-            selected.forEach(card => formData.append('outfit_ids[]', card.dataset.id));
-            this.createSelectedUserIds.forEach(uid => formData.append('user_ids[]', uid));
-            const res = await fetch(`${API_URL}/stylist-capsule`, { method: 'POST', body: formData });
-            if (!res.ok) throw new Error(await res.text());
 
-            $('#createCapsuleModal').modal('hide');
-            document.querySelectorAll('.select-checkbox:checked').forEach(cb => cb.checked = false);
-            this.toggleCapsuleBtn();
-            this.showSuccess('createCapsuleSuccess');
-            this.fetchOutfits();
-            this.createSelectedUserIds = [];
-            this.createSelectedUserAliases = [];
+            try {
+                const formData = new FormData(document.getElementById('createCapsuleForm'));
+                selected.forEach(card => formData.append('outfit_ids[]', card.dataset.id));
+                this.createSelectedUserIds.forEach(uid => formData.append('user_ids[]', uid));
+
+                const res = await fetch(`${API_URL}/stylist-capsule`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error(await res.text());
+
+                $('#createCapsuleModal').modal('hide');
+                this.showSuccess('createCapsuleSuccess');
+                this.fetchOutfits();
+
+                this.selectedOutfits = [];
+                this.resetCapsuleForm();
+                document.querySelectorAll('.select-checkbox').forEach(cb => cb.checked = false);
+                this.toggleCapsuleBtn();
+            } catch (err) {
+                console.error('Error creating capsule:', err);
+                alert('Ошибка при создании капсулы');
+            }
         },
     },
     watch: {
@@ -673,6 +712,10 @@ export default {
     mounted() {
         this.fetchOutfits();
         this.setupConfirmButtons();
+
+        $('#createCapsuleModal').on('hidden.bs.modal', () => {
+            this.resetCapsuleForm();
+        });
 
         document.body.addEventListener('click', async (e) => {
             const editBtn = e.target.closest('button[data-target="#editOutfitModal"]');

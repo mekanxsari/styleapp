@@ -404,10 +404,34 @@ export default {
       }
 
       const overlay = document.getElementById('add-img-overlay');
-      if (overlay) overlay.style.display = 'block';
+      if (overlay) overlay.style.display = 'flex';
 
       const fileInput = document.getElementById('itemImage');
       if (fileInput) fileInput.value = '';
+    },
+    resetCreateOutfitForm() {
+      const form = document.getElementById('createOutfitForm');
+      if (form) form.reset();
+
+      const preview = document.getElementById('outfitPreview');
+      const overlay = document.querySelector('#createOutfitModal .upload-overlay');
+      const fileInput = document.getElementById('outfitImage');
+
+      if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+      }
+
+      if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '1';
+      }
+
+      if (fileInput) fileInput.value = '';
+
+      this.selectedAliases = [];
+      this.userSearchQuery = '';
+      this.searchResults = [];
     },
     isValidUrl(string) {
       try {
@@ -734,6 +758,7 @@ export default {
         $('#createOutfitModal').modal('hide');
         this.selectedIds = [];
         this.selectedAliases = [];
+        this.resetCreateOutfitForm();
         document.getElementById('createOutfitSuccess').style.display = 'block';
         setTimeout(() => {
           document.getElementById('createOutfitSuccess').style.display = 'none';
@@ -789,6 +814,10 @@ export default {
 
     $('#createOutfitModal').on('show.bs.modal', () => {
       this.updateSelectedItemsPreview();
+    });
+
+    $('#createOutfitModal').on('hidden.bs.modal', () => {
+      this.resetCreateOutfitForm();
     });
   },
   beforeDestroy() {
