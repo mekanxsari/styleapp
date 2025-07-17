@@ -313,29 +313,26 @@
                     placeholder="Введите описание образа"></textarea>
                 </div>
                 <div class="form-group col-md-12">
-                <label>Назначить пользователям</label>
-                <input type="text" v-model="userSearchQuery" @input="searchUsers" class="form-control" placeholder="Введите алиас пользователя" />
-                <div class="mt-2">
-                  <button
-                    v-for="user in searchResults"
-                    :key="user.id"
-                    type="button"
-                    @click="addAlias(user.alias)"
-                    class="btn btn-sm btn-outline-primary mr-1 mb-1"
-                  >
-                    {{ user.alias }}
-                  </button>
+                  <label>Назначить пользователям</label>
+                  <input type="text" v-model="userSearchQuery" @input="searchUsers" class="form-control"
+                    placeholder="Введите алиас пользователя" />
+                  <div class="mt-2">
+                    <button v-for="user in searchResults" :key="user.id" type="button" @click="addAlias(user.alias)"
+                      class="btn btn-sm btn-outline-primary mr-1 mb-1">
+                      {{ user.alias }}
+                    </button>
 
-                </div>
-                <div class="mt-2" style="display: flex;">
-                  <span v-for="alias in selectedAliases" :key="alias" class="badge badge-info mr-1" style="display: inline-flex;align-items: center;padding:5px 5px;">
-                    {{ alias }}
-                    <button @click="removeAlias(alias)" class="close ml-2">&times;</button>
-                  </span>
+                  </div>
+                  <div class="mt-2" style="display: flex;">
+                    <span v-for="alias in selectedAliases" :key="alias" class="badge badge-info mr-1"
+                      style="display: inline-flex;align-items: center;padding:5px 5px;">
+                      {{ alias }}
+                      <button @click="removeAlias(alias)" class="close ml-2">&times;</button>
+                    </span>
+                  </div>
                 </div>
               </div>
-              </div>
-              
+
 
               <hr />
               <h5 class="mb-3">Выбранные одежды</h5>
@@ -396,6 +393,22 @@ export default {
     };
   },
   methods: {
+    resetAddForm() {
+      const form = document.getElementById('addForm');
+      if (form) form.reset();
+
+      const preview = document.getElementById('itemPreview');
+      if (preview) {
+        preview.src = '';
+        preview.style.display = 'none';
+      }
+
+      const overlay = document.getElementById('add-img-overlay');
+      if (overlay) overlay.style.display = 'block';
+
+      const fileInput = document.getElementById('itemImage');
+      if (fileInput) fileInput.value = '';
+    },
     isValidUrl(string) {
       try {
         new URL(string);
@@ -451,7 +464,7 @@ export default {
       }
     },
 
-    handleSearch: _.debounce(function() {
+    handleSearch: _.debounce(function () {
       this.fetchClothes(true);
     }, 300),
 
@@ -610,7 +623,7 @@ export default {
         this.items.unshift(newItem);
 
         $('#addModal').modal('hide');
-        form.reset();
+        this.resetAddForm();
         document.getElementById('itemPreview').style.display = 'none';
 
         const alert = document.getElementById('editSuccess');
@@ -664,7 +677,7 @@ export default {
         this.searchResults = [];
         return;
       }
-      
+
       try {
         const response = await fetch(`${API_URL}/stylist-users/search?alias=${this.userSearchQuery}`);
         this.searchResults = await response.json();
@@ -673,13 +686,13 @@ export default {
         this.searchResults = [];
       }
     },
-    
+
     addAlias(alias) {
       if (!this.selectedAliases.includes(alias)) {
         this.selectedAliases.push(alias);
       }
     },
-    
+
     removeAlias(alias) {
       this.selectedAliases = this.selectedAliases.filter(a => a !== alias);
     },
@@ -732,8 +745,9 @@ export default {
     },
 
     initImageUploads() {
-      const initUpload = (modalId, inputId, previewId) => {
-        const overlay = document.querySelector(`${modalId} .upload-overlay`);
+      const initUpload = (modalId, inputId, previewId, overlayId) => {
+        const overlay = overlayId ? document.getElementById(overlayId) :
+          document.querySelector(`${modalId} .upload-overlay`);
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
 
@@ -759,7 +773,7 @@ export default {
         }
       };
 
-      initUpload('#addModal', 'itemImage', 'itemPreview');
+      initUpload('#addModal', 'itemImage', 'itemPreview', 'add-img-overlay');
       initUpload('#editModal', 'editImageInput', 'editImagePreview');
       initUpload('#createOutfitModal', 'outfitImage', 'outfitPreview');
     }
@@ -768,6 +782,10 @@ export default {
     this.fetchClothes();
     window.addEventListener('scroll', this.handleScroll);
     this.initImageUploads();
+
+    $('#addModal').on('hidden.bs.modal', () => {
+      this.resetAddForm();
+    });
 
     $('#createOutfitModal').on('show.bs.modal', () => {
       this.updateSelectedItemsPreview();

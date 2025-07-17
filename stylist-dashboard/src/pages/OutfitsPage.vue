@@ -40,7 +40,13 @@
                                 <div class="outfit-img-container">
                                     <img :src="siteUrl + '/app-images/' + outfit.image_url" class="outfit-img"
                                         :alt="outfit.title" />
-                                    <input type="checkbox" class="select-checkbox" :data-outfit-id="outfit.id" />
+                                    <input 
+    type="checkbox" 
+    class="select-checkbox" 
+    v-model="selectedOutfits" 
+    :value="outfit.id.toString()"
+    @change="toggleCapsuleBtn"
+/>
                                 </div>
                                 <div class="outfit-title flex">
                                     {{ outfit.title }}
@@ -524,26 +530,42 @@ export default {
         },
 
         toggleCapsuleBtn() {
-            document.getElementById('createCapsuleBtn').disabled = this.selectedOutfits.length < 3;
+            const btn = document.getElementById('createCapsuleBtn');
+            if (btn) {
+                btn.disabled = this.selectedOutfits.length < 3;
+            }
         },
 
         prepareCapsulePreview() {
-            const selected = this.getSelectedOutfits();
             const previewContainer = document.getElementById('selectedOutfitsPreview');
             previewContainer.innerHTML = '';
-            selected.forEach((card, idx) => {
-                const clone = card.cloneNode(true);
-                clone.classList.replace('col-md-3', 'col-md-4');
-                clone.classList.add('mb-3');
-                clone.dataset.previewId = `preview-${idx}`;
-                clone.querySelector('.btn-warning')?.remove();
-                clone.querySelector('.select-checkbox')?.remove();
-                const delBtn = clone.querySelector('.btn-delete');
-                if (delBtn) {
-                    delBtn.classList.replace('btn-delete', 'btn-capsule-preview-delete');
-                    delBtn.dataset.previewId = `preview-${idx}`;
-                }
-                previewContainer.appendChild(clone);
+
+            this.selectedOutfits.forEach((outfitId, idx) => {
+                const outfit = this.outfits.find(o => o.id.toString() === outfitId);
+                if (!outfit) return;
+
+                const card = document.createElement('div');
+                card.className = 'col-md-4 mb-3';
+                card.dataset.previewId = `preview-${idx}`;
+                card.innerHTML = `
+            <div class="card outfit-card">
+                <div class="outfit-img-container">
+                    <img src="${this.siteUrl}/app-images/${outfit.image_url}" class="outfit-img" alt="${outfit.title}">
+                </div>
+                <div class="outfit-title flex">
+                    ${outfit.title}
+                    <div class="float-right" style="margin-top: 10px;">
+                        <button type="button" class="btn btn-sm btn-danger btn-capsule-preview-delete" data-preview-id="preview-${idx}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div style="font-weight: normal; font-size: 14px;">
+                        ${outfit.season} | ${outfit.label}
+                    </div>
+                </div>
+            </div>
+        `;
+                previewContainer.appendChild(card);
             });
         },
 
