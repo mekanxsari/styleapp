@@ -3,7 +3,6 @@
     <div class="profile-container">
       <ul class="profile-heading">
         <li class="title-page">Персональные данные</li>
-        <li class="spisok"><a href="#">Мои списки</a></li>
       </ul>
       <form class="user-form" @submit.prevent="onSubmit">
         <label class="user-label">ФИО</label>
