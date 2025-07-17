@@ -25,19 +25,22 @@
       <div class="card mb-4">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <form class="form-inline mb-2 mb-md-0" style="flex: 1 1 auto;">
+            <form @submit.prevent="handleSearch" class="form-inline mb-2 mb-md-0" style="flex: 1 1 auto;">
               <div class="input-group mr-2 mb-2">
-                <input type="text" class="form-control search" placeholder="Поиск..." aria-label="Поиск">
+                <input v-model="searchText" type="text" class="form-control search" placeholder="Поиск…"
+                  aria-label="Поиск" />
               </div>
               <div class="form-group mr-2 mb-2">
-                <select class="form-control search-select">
-                  <option value="" selected>Все</option>
+                <select v-model="searchField" class="form-control search-select">
+                  <option value="">Все</option>
                   <option value="title">Название</option>
-                  <option value="category">Сезон</option>
+                  <option value="season">Сезон</option>
                 </select>
               </div>
               <button type="submit" class="btn btn-primary mb-2">Поиск</button>
+              <button type="button" class="btn btn-secondary mb-2 ml-2" @click="clearSearch">Сбросить</button>
             </form>
+
           </div>
         </div>
       </div>
@@ -205,9 +208,9 @@
     </div>
   </div>
 </template>
-
 <script>
 import { API_URL, SITE_URL } from '../api'
+import _ from 'lodash'
 
 export default {
   data() {
@@ -228,27 +231,78 @@ export default {
       },
       uploadedImageFile: null,
       currentDeleteType: null,
-      currentDeleteId: null
+      currentDeleteId: null,
+      searchText: '',
+      searchField: '',
+      page: 1,
+      hasMore: true,
+      isLoading: false
     }
   },
   mounted() {
     this.fetchCapsules();
+    window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
-    async fetchCapsules() {
+    async fetchCapsules(reset = false) {
+      if (this.isLoading) return;
+      this.isLoading = true;
+
+      if (reset) {
+        this.capsules = [];
+        this.page = 1;
+        this.hasMore = true;
+      }
+
       try {
-        const response = await fetch(`${API_URL}/stylist-capsulas`);
+        const params = new URLSearchParams({
+          page: this.page.toString()
+        });
+
+        if (this.searchText) {
+          params.append('q', this.searchText);
+          if (this.searchField) params.append('field', this.searchField);
+        }
+
+        const response = await fetch(`${API_URL}/stylist-capsulas?${params.toString()}`);
         const data = await response.json();
-        this.capsules = data.map(c => ({
-          id: c.id,
-          title: c.title,
-          image: `${SITE_URL}/app-images/${c.image_url}?t=${Date.now()}`,
-          seasons: [c.season_1, c.season_2].filter(Boolean),
-          description: c.description
-        }));
+
+        if (data.length === 0) {
+          this.hasMore = false;
+        } else {
+          this.capsules = reset ? data.map(c => this.formatCapsule(c)) : [...this.capsules, ...data.map(c => this.formatCapsule(c))];
+          this.page += 1;
+        }
       } catch (error) {
         console.error('Ошибка при загрузке капсул:', error);
+      } finally {
+        this.isLoading = false;
       }
+    },
+    formatCapsule(c) {
+      return {
+        id: c.id,
+        title: c.title,
+        image: `${SITE_URL}/app-images/${c.image_url}?t=${Date.now()}`,
+        seasons: [c.season_1, c.season_2].filter(Boolean),
+        description: c.description
+      }
+    },
+    handleScroll: _.debounce(function () {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !this.isLoading && this.hasMore) {
+        this.fetchCapsules();
+      }
+    }, 300),
+    handleSearch: _.debounce(function () {
+      this.fetchCapsules(true);
+    }, 300),
+    clearSearch() {
+      this.searchText = '';
+      this.searchField = '';
+      this.fetchCapsules(true);
     },
     async openEditModal(capsule) {
       try {
@@ -315,7 +369,6 @@ export default {
         formData.append('user_ids[]', uid)
       })
 
-
       this.selectedCapsule.outfits.forEach(o => {
         formData.append('outfit_ids[]', o.id);
       });
@@ -330,7 +383,7 @@ export default {
           body: formData
         });
 
-        await this.fetchCapsules();
+        await this.fetchCapsules(true);
         $('#editCapsuleModal').modal('hide');
         $('#saveSuccessAlert').fadeIn();
         setTimeout(() => { $('#saveSuccessAlert').fadeOut(); }, 3000);
@@ -386,21 +439,19 @@ export default {
         this.editSearchResults = []
       }
     },
-
     editAddUser(user) {
       if (!this.editSelectedUserIds.includes(user.id)) {
         this.editSelectedUserIds.push(user.id)
         this.editSelectedUserAliases.push(user.alias)
       }
     },
-
     editRemoveUser(userId) {
       const idx = this.editSelectedUserIds.indexOf(userId)
       if (idx !== -1) {
         this.editSelectedUserIds.splice(idx, 1)
         this.editSelectedUserAliases.splice(idx, 1)
       }
-    },
+    }
   }
 }
 </script>
