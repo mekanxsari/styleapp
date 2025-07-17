@@ -24,7 +24,7 @@
             </form>
             <button class="btn btn-success ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
               data-target="#addModal">
-              <i class="fas fa-plus"></i> Добавить одежда
+              <i class="fas fa-plus"></i> Добавить вещь
             </button>
             <button class="btn btn-primary ml-md-3 mb-2" style="white-space: nowrap;" data-toggle="modal"
               data-target="#createOutfitModal" :disabled="selectedIds.length < 3">

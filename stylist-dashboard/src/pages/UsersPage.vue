@@ -309,19 +309,6 @@
                   <input type="text" class="form-control" :value="selectedUser?.budget_description || ''" disabled />
                 </div>
               </div>
-
-              <h5 class="w-100 mt-3 mb-2 border-bottom pb-2">Фотографии</h5>
-              <div class="form-row mt-3">
-                <div v-for="(img, index) in images" :key="index" class="col-md-3 mb-3">
-                  <img :src="img" alt="Фото" class="img-thumbnail preview-image" @click="openFullscreen(img)" />
-                </div>
-              </div>
-
-              <div v-if="fullscreenImage" class="fullscreen-overlay" @click="closeFullscreen"
-                style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1050;">
-                <img :src="fullscreenImage" alt="Полноэкранное фото" class="fullscreen-image"
-                  style="max-width: 90%; max-height: 90%;" />
-              </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -370,7 +357,6 @@ const selectedUser = ref(null)
 const originalPasscode = ref('')
 const isPasscodeChanged = ref(false)
 const errorMessage = ref('')
-const fullscreenImage = ref(null)
 const newUser = ref({ alias: '', passcode: '' })
 const deleteUserId = ref(null)
 
@@ -454,19 +440,6 @@ async function editPasscode(user) {
     console.error('Passcode update error:', err)
     errorMessage.value = 'Ошибка при сохранении кода'
   }
-}
-
-const images = ref([
-  'https://randomwordgenerator.com/img/picture-generator/52e4d2464356af14f1dc8460962e33791c3ad6e04e5074417d2e72d6934cc5_640.jpg',
-  'https://randomwordgenerator.com/img/picture-generator/54e7d64a4b53a914f1dc8460962e33791c3ad6e04e50744172297cdd9444cc_640.jpg'
-])
-
-function openFullscreen(img) {
-  fullscreenImage.value = img
-}
-
-function closeFullscreen() {
-  fullscreenImage.value = null
 }
 
 function prepareDelete(id) {

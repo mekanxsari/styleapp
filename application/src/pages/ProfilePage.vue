@@ -3,9 +3,6 @@
     <div class="profile-container">
       <ul class="profile-heading">
         <li class="username">{{ userDisplayName }}</li>
-        <li class="spisok">
-          <router-link to="/profile/my-list">Мои списки</router-link>
-        </li>
       </ul>
 
       <div class="profile-img">
@@ -13,9 +10,6 @@
       </div>
 
       <ul class="menu-options">
-        <li>
-          <router-link to="/likes">Лайки</router-link>
-        </li>
         <li>
           <router-link to="/profile/personal">Персональные данные</router-link>
         </li>
@@ -26,7 +20,10 @@
           <router-link to="/profile/additional">Дополнительные вопросы</router-link>
         </li>
         <li>
-          <router-link to="/profile/upload">Отправка фотографий</router-link>
+          <router-link to="/profile/my-list">Мой гардероб</router-link>
+        </li>
+        <li>
+          <router-link to="/likes">Избранное</router-link>
         </li>
         <li class="logout">
           <a href="#" @click.prevent="logout">Выйти</a>
