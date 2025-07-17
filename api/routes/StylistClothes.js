@@ -3,17 +3,14 @@ const router = express.Router();
 const pool = require('../db');
 
 router.get('/', async (req, res) => {
-  const page = parseInt(req.query.page || '1');
+  const page = Math.max(1, parseInt(req.query.page || '1'));
   const limit = 20;
   const offset = (page - 1) * limit;
   const q = req.query.q || '';
   const field = req.query.field || '';
 
   try {
-    let query = `
-      SELECT id, image_url, title, category, artikul, store_name, store_url
-      FROM clothes
-    `;
+    let query = `SELECT id, image_url, title, category, artikul, store_name, store_url FROM clothes`;
     const values = [];
     let paramIndex = 1;
 
@@ -35,11 +32,9 @@ router.get('/', async (req, res) => {
         paramIndex++;
       } else {
         const searchableFields = ['title', 'category', 'artikul', 'store_name'];
-        const conditions = searchableFields.map(field => `${field} ILIKE $${paramIndex++}`);
+        const conditions = searchableFields.map(f => `${f} ILIKE $${paramIndex++}`);
         query += ` WHERE ` + conditions.join(' OR ');
-        for (let i = 0; i < searchableFields.length; i++) {
-          values.push(`%${q}%`);
-        }
+        searchableFields.forEach(() => values.push(`%${q}%`));
       }
     }
 

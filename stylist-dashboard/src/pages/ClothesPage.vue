@@ -373,9 +373,9 @@
     Образ успешно создан!
   </div>
 </template>
-
 <script>
 import { API_URL, SITE_URL } from '../api'
+import _ from 'lodash'
 
 export default {
   data() {
@@ -420,9 +420,9 @@ export default {
           page: this.page.toString(),
         });
 
-        if (this.searchText && this.searchField) {
+        if (this.searchText) {
           params.append('q', this.searchText);
-          params.append('field', this.searchField);
+          if (this.searchField) params.append('field', this.searchField);
         }
 
         const response = await fetch(`${API_URL}/stylist-clothes?${params.toString()}`);
@@ -432,11 +432,7 @@ export default {
         if (data.length === 0) {
           this.allLoaded = true;
         } else {
-          if (reset) {
-            this.items = data;
-          } else {
-            this.items.push(...data);
-          }
+          this.items = reset ? data : [...this.items, ...data];
           this.page += 1;
         }
       } catch (error) {
@@ -450,9 +446,22 @@ export default {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
       const fullHeight = document.body.offsetHeight;
-      if (scrollY + viewportHeight >= fullHeight - 300) {
+      if (scrollY + viewportHeight >= fullHeight - 300 && !this.isLoading && !this.allLoaded) {
         this.fetchClothes();
       }
+    },
+
+    handleSearch: _.debounce(function() {
+      this.fetchClothes(true);
+    }, 300),
+
+    clearSearch() {
+      this.searchText = '';
+      this.searchField = '';
+      this.page = 1;
+      this.allLoaded = false;
+      history.replaceState(null, '', window.location.pathname);
+      this.fetchClothes(true);
     },
 
     prepareDelete(id) {
@@ -470,10 +479,9 @@ export default {
         $('#deleteModal').modal('hide');
         this.items = this.items.filter(item => item.id !== this.itemIdToDelete);
         this.itemIdToDelete = null;
-        const alert = document.getElementById('deleteSuccess');
-        alert.style.display = 'block';
+        document.getElementById('deleteSuccess').style.display = 'block';
         setTimeout(() => {
-          alert.style.display = 'none';
+          document.getElementById('deleteSuccess').style.display = 'none';
         }, 2000);
       } catch (error) {
         console.error('Error deleting item:', error);
@@ -505,7 +513,6 @@ export default {
     async confirmEdit() {
       const form = document.getElementById('editForm');
       const formData = new FormData();
-
       const id = this.itemIdToEdit;
       if (!id) return;
 
@@ -522,7 +529,7 @@ export default {
       }
 
       if (!this.isValidUrl(store_url)) {
-        alert("Пожалуйста, введите корректный URL магазина (например: https://example.com)");
+        alert("Пожалуйста, введите корректный URL магазина");
         return;
       }
 
@@ -534,10 +541,7 @@ export default {
       formData.append('store_url', store_url);
 
       const imageFile = document.getElementById('editImageInput')?.files?.[0];
-
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
+      if (imageFile) formData.append('image', imageFile);
 
       try {
         const response = await fetch(`${API_URL}/stylist-cloth/${id}`, {
@@ -545,20 +549,15 @@ export default {
           body: formData,
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error('Failed to save changes');
-        }
-
+        if (!response.ok) throw new Error('Failed to save changes');
         const updated = await response.json();
         const index = this.items.findIndex(item => item.id === id);
         if (index !== -1) this.items.splice(index, 1, updated);
 
         $('#editModal').modal('hide');
-        const alert = document.getElementById('editSuccess');
-        alert.style.display = 'block';
+        document.getElementById('editSuccess').style.display = 'block';
         setTimeout(() => {
-          alert.style.display = 'none';
+          document.getElementById('editSuccess').style.display = 'none';
         }, 2000);
       } catch (error) {
         console.error('Error saving item:', error);
@@ -569,7 +568,6 @@ export default {
     async confirmAdd() {
       const form = document.getElementById('addForm');
       const formData = new FormData();
-
       const imageFile = document.getElementById('itemImage')?.files?.[0];
       if (!imageFile) {
         alert('Пожалуйста, выберите изображение!');
@@ -589,7 +587,7 @@ export default {
       }
 
       if (!this.isValidUrl(store_url)) {
-        alert("Пожалуйста, введите корректный URL магазина (например: https://example.com)");
+        alert("Пожалуйста, введите корректный URL магазина");
         return;
       }
 
@@ -607,11 +605,7 @@ export default {
           body: formData,
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error('Ошибка при добавлении одежды');
-        }
-
+        if (!response.ok) throw new Error('Ошибка при добавлении одежды');
         const newItem = await response.json();
         this.items.unshift(newItem);
 
@@ -634,14 +628,12 @@ export default {
     updateSelectedItemsPreview() {
       const container = document.getElementById('selectedItemsPreview');
       container.innerHTML = '';
-
       const selected = this.items.filter(item => this.selectedIds.includes(item.id.toString()));
 
       selected.forEach(item => {
         const col = document.createElement('div');
         col.className = 'col-md-4';
         col.dataset.id = item.id;
-
         col.innerHTML = `
           <div class="card mb-3">
             <img src="${this.SITE_URL}/app-images/${item.image_url}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${item.title}">
@@ -660,10 +652,8 @@ export default {
         btn.addEventListener('click', (e) => {
           const id = e.currentTarget.getAttribute('data-id');
           this.selectedIds = this.selectedIds.filter(selectedId => selectedId !== id);
-
           const checkbox = document.querySelector(`input.select-checkbox[data-id="${id}"]`);
           if (checkbox) checkbox.checked = false;
-
           this.updateSelectedItemsPreview();
         });
       });
@@ -695,9 +685,7 @@ export default {
     },
 
     async confirmCreateOutfit() {
-      const form = document.getElementById('createOutfitForm');
       const formData = new FormData();
-
       const image = document.getElementById('outfitImage')?.files?.[0];
       const title = document.getElementById('outfitTitle').value.trim();
       const description = document.getElementById('outfitDescription').value.trim();
@@ -719,7 +707,6 @@ export default {
       formData.append('category', category);
       formData.append('season', season);
       formData.append('image', image);
-
       this.selectedIds.forEach(id => formData.append('clothesIds[]', id));
       this.selectedAliases.forEach(alias => formData.append('userAliases[]', alias));
 
@@ -744,88 +731,37 @@ export default {
       }
     },
 
-    handleSearch() {
-      this.fetchClothes(true);
-    },
-
-    clearSearch() {
-      this.searchText = '';
-      this.searchField = '';
-      this.fetchClothes(true);
-    },
-
     initImageUploads() {
-      const addOverlay = document.querySelector('#addModal .upload-overlay');
-      const addFileInput = document.getElementById('itemImage');
+      const initUpload = (modalId, inputId, previewId) => {
+        const overlay = document.querySelector(`${modalId} .upload-overlay`);
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
 
-      if (addOverlay && addFileInput) {
-        addOverlay.addEventListener('click', () => {
-          addFileInput.click();
-        });
-      }
+        if (overlay && input) {
+          overlay.addEventListener('click', () => input.click());
+        }
 
-      if (addFileInput) {
-        addFileInput.addEventListener('change', (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const preview = document.getElementById('itemPreview');
-              preview.src = e.target.result;
-              preview.style.display = 'block';
-              addOverlay.removeAttribute('style');
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
+        if (input) {
+          input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                if (preview) {
+                  preview.src = event.target.result;
+                  preview.style.display = 'block';
+                }
+                if (overlay) overlay.style.display = 'none';
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
+      };
 
-      const editOverlay = document.querySelector('#editModal .upload-overlay');
-      const editFileInput = document.getElementById('editImageInput');
-
-      if (editOverlay && editFileInput) {
-        editOverlay.addEventListener('click', () => {
-          editFileInput.click();
-        });
-      }
-
-      if (editFileInput) {
-        editFileInput.addEventListener('change', (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              document.getElementById('editImagePreview').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
-
-      const createOverlay = document.querySelector('#createOutfitModal .upload-overlay');
-      const createFileInput = document.getElementById('outfitImage');
-
-      if (createOverlay && createFileInput) {
-        createOverlay.addEventListener('click', () => {
-          createFileInput.click();
-        });
-      }
-
-      if (createFileInput) {
-        createFileInput.addEventListener('change', (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const preview = document.getElementById('outfitPreview');
-              preview.src = e.target.result;
-              preview.style.display = 'block';
-              createOverlay.style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-      }
+      initUpload('#addModal', 'itemImage', 'itemPreview');
+      initUpload('#editModal', 'editImageInput', 'editImagePreview');
+      initUpload('#createOutfitModal', 'outfitImage', 'outfitPreview');
     }
   },
   mounted() {
