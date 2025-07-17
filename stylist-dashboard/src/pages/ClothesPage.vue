@@ -111,7 +111,7 @@
         <form id="addForm" enctype="multipart/form-data">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="addModalLabel">Добавить одежда</h5>
+              <h5 class="modal-title" id="addModalLabel">Добавить вещь</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
                 <span aria-hidden="true">&times;</span>
               </button>
