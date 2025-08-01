@@ -163,16 +163,12 @@
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label>Категория</label>
-                                    <select class="form-control" name="category" required>
+                                    <select class="form-control" name="category" id="outfitCategory" required>
                                         <option value="">Выберите категорию</option>
-                                        <option value="Романтический">Романтический</option>
                                         <option value="Повседневный">Повседневный</option>
-                                        <option value="Кэжуал">Кэжуал</option>
+                                        <option value="Спортивный">Рабочий</option>
                                         <option value="Спортивный">Спортивный</option>
-                                        <option value="Элегантный">Элегантный</option>
-                                        <option value="Пляж">Пляж</option>
-                                        <option value="Коктейльный">Коктейльный</option>
-                                        <option value="Минималистичный">Минималистичный</option>
+                                        <option value="Спортивный">Вечерний</option>
                                     </select>
                                 </div>
 
@@ -266,19 +262,8 @@
                             </div>
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label>Сезон 1</label>
-                                    <select class="form-control" name="season1" id="outfitSeason1" required>
-                                        <option value="">Выберите сезон</option>
-                                        <option value="Зима">Зима</option>
-                                        <option value="Весна">Весна</option>
-                                        <option value="Лето">Лето</option>
-                                        <option value="Осень">Осень</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group col-md-6">
-                                    <label>Сезон 2</label>
-                                    <select class="form-control" name="season2" id="outfitSeason2">
+                                    <label>Сезон</label>
+                                    <select class="form-control" name="season" id="outfitSeason1" required>
                                         <option value="">Выберите сезон</option>
                                         <option value="Зима">Зима</option>
                                         <option value="Весна">Весна</option>

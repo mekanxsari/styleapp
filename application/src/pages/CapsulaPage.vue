@@ -78,7 +78,7 @@ async function loadCapsula() {
     capsula.value = {
       id: data.id,
       title: data.title,
-      season: data.season_1 + (data.season_2 ? '/' + data.season_2 : ''),
+      season: data.season,
       image: `${SITE_URL}/app-images/${data.image_url}`,
       description: data.description,
       liked: data.liked

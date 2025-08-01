@@ -10,14 +10,12 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    // 1. Get all is_public = true capsules
     const capsulesResult = await pool.query(
       `SELECT 
         c.id,
         c.image_url,
         c.title,
-        c.season_1,
-        c.season_2
+        c.season,
        FROM capsulas c
        WHERE c.is_public = true
        ORDER BY c.id`
@@ -27,7 +25,6 @@ router.get("/", async (req, res) => {
 
     if (capsules.length === 0) return res.json([]);
 
-    // 2. Get quantity (outfit count) for all public capsules
     const capsuleIds = capsules.map(c => c.id);
     const quantityResult = await pool.query(
       `SELECT capsulas_id, COUNT(outfit_id) AS quantity
@@ -42,7 +39,6 @@ router.get("/", async (req, res) => {
       quantityMap[row.capsulas_id] = parseInt(row.quantity);
     });
 
-    // 3. Get liked capsules for this user
     const likedResult = await pool.query(
       `SELECT liked_id FROM users_liked 
        WHERE liked_type = 'capsulas' AND user_id = $1 AND liked_id = ANY($2)`,
@@ -51,7 +47,6 @@ router.get("/", async (req, res) => {
 
     const likedSet = new Set(likedResult.rows.map(r => r.liked_id));
 
-    // 4. Combine everything
     const enrichedCapsules = capsules.map(c => ({
       ...c,
       quantity: quantityMap[c.id] || 0,

@@ -68,8 +68,7 @@ router.get("/:id", async (req, res) => {
         c.id,
         c.image_url AS image_id,
         c.title,
-        c.season_1,
-        c.season_2,
+        c.season,
         (
           SELECT COUNT(*) FROM capsulas_superset cs2 WHERE cs2.capsulas_id = c.id
         )::INT AS quantity,

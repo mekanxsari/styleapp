@@ -192,7 +192,7 @@ onMounted(async () => {
       id: c.id,
       title: c.title,
       image: `${SITE_URL}/app-images/${c.image_id}`,
-      season: c.season_1 + (c.season_2 ? '/' + c.season_2 : ''),
+      season: c.season,
       count: c.quantity,
       liked: c.liked
     }))

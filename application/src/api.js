@@ -1,3 +1,2 @@
-// export const API_URL = 'http://mekanxsari.ru:3000/api';
 export const API_URL = '/api';
-export const SITE_URL = 'https://www.mekanxsari.ru';
+export const SITE_URL = 'https://www.example.com';

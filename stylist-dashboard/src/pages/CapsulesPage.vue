@@ -63,7 +63,7 @@
                       <i class="fas fa-trash"></i>
                     </button>
                   </div>
-                  <div style="font-weight: normal;font-size: 14px;">{{ capsule.seasons.join(' | ') }}</div>
+                  <div style="font-weight: normal;font-size: 14px;">{{ capsule.season }}</div>
                 </div>
               </div>
             </div>
@@ -106,32 +106,21 @@
             </div>
 
             <div class="form-row">
-              <div class="form-group col-md-6">
-                <label>Сезон 1</label>
-                <select class="form-control" v-model="selectedCapsule.seasons[0]" required>
-                  <option value="">Выберите сезон</option>
-                  <option value="Зима">Зима</option>
-                  <option value="Весна">Весна</option>
-                  <option value="Лето">Лето</option>
-                  <option value="Осень">Осень</option>
-                </select>
-              </div>
+                <div class="form-group col-md-6">
+                  <label>Сезон</label>
+                  <select class="form-control" v-model="selectedCapsule.seasons[0]" required>
+                    <option value="">Выберите сезон</option>
+                    <option value="Зима">Зима</option>
+                    <option value="Весна">Весна</option>
+                    <option value="Лето">Лето</option>
+                    <option value="Осень">Осень</option>
+                  </select>
+                </div>
 
-              <div class="form-group col-md-6">
-                <label>Сезон 2</label>
-                <select class="form-control" v-model="selectedCapsule.seasons[1]">
-                  <option value="">Выберите сезон</option>
-                  <option value="Зима">Зима</option>
-                  <option value="Весна">Весна</option>
-                  <option value="Лето">Лето</option>
-                  <option value="Осень">Осень</option>
-                </select>
+              <div class="form-group">
+                <label>Описание</label>
+                <textarea class="form-control" v-model="selectedCapsule.description" rows="3"></textarea>
               </div>
-            </div>
-
-            <div class="form-group">
-              <label>Описание</label>
-              <textarea class="form-control" v-model="selectedCapsule.description" rows="3"></textarea>
             </div>
 
             <div class="form-group">
@@ -225,7 +214,7 @@ export default {
         id: null,
         title: '',
         image: '',
-        seasons: ['', ''],
+        season: '',
         description: '',
         outfits: []
       },
@@ -287,7 +276,7 @@ export default {
         id: c.id,
         title: c.title,
         image: `${SITE_URL}/app-images/${c.image_url}?t=${Date.now()}`,
-        seasons: [c.season_1, c.season_2].filter(Boolean),
+        season: c.season,
         description: c.description
       }
     },
@@ -322,7 +311,7 @@ export default {
           id: data.id,
           title: data.title,
           image: `${SITE_URL}/app-images/${data.image_url}?t=${Date.now()}`,
-          seasons: [data.season_1 || '', data.season_2 || ''],
+          season: data.season || '',
           description: data.description || '',
           outfits: (data.outfits || []).map(o => ({
             id: o.id,
@@ -354,7 +343,7 @@ export default {
       reader.readAsDataURL(file);
     },
     async saveChanges() {
-      if (!this.selectedCapsule.title || !this.selectedCapsule.seasons[0] || this.selectedCapsule.outfits.length === 0) {
+      if (!this.selectedCapsule.title || !this.selectedCapsule.season || this.selectedCapsule.outfits.length === 0) {
         $('#errorAlert').fadeIn().text('Заполните все обязательные поля');
         setTimeout(() => { $('#errorAlert').fadeOut(); }, 3000);
         return;
@@ -363,8 +352,7 @@ export default {
       const formData = new FormData();
       formData.append('title', this.selectedCapsule.title);
       formData.append('description', this.selectedCapsule.description || '');
-      formData.append('season1', this.selectedCapsule.seasons[0]);
-      formData.append('season2', this.selectedCapsule.seasons[1] || '');
+      formData.append('season', this.selectedCapsule.season);
       this.editSelectedUserIds.forEach(uid => {
         formData.append('user_ids[]', uid)
       })

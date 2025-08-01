@@ -17,8 +17,7 @@ router.get("/:id", async (req, res) => {
         c.image_url,
         c.title,
         c.description,
-        c.season_1,
-        c.season_2,
+        c.season,
         COUNT(cs.outfit_id) AS quantity,
         CASE WHEN ul.id IS NOT NULL THEN true ELSE false END AS liked
       FROM capsulas c

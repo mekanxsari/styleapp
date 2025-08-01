@@ -143,7 +143,7 @@ async function fetchMyList() {
       id: c.id,
       image: `${SITE_URL}/app-images/${c.image_url}`,
       title: c.title,
-      season: c.season_1 || c.season_2 || '',
+      season: c.season || '',
       count: c.quantity,
       liked: c.liked
     }))

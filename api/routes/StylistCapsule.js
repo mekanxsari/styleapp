@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/', upload.single('image'), async (req, res) => {
-  const { title, description, season1, season2 } = req.body;
+  const { title, description, season } = req.body;
   const outfitIds = req.body.outfit_ids || [];
   const userIds = req.body.user_ids || [];
 
@@ -28,7 +28,7 @@ router.post('/', upload.single('image'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'Image is required' });
     }
-    if (!title || !season1 || !outfitIds) {
+    if (!title || !season || !outfitIds) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -38,10 +38,10 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     const insertCapsule = await pool.query(
       `INSERT INTO capsulas
-         (image_url, title, description, season_1, season_2, is_public)
-       VALUES ($1, $2, $3, $4, $5, $6)
+         (image_url, title, description, season, is_public)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
-      [image_url, title, description || '', season1, season2 || '', isPublic]
+      [image_url, title, description || '', season, isPublic]
     );
 
     const capsuleId = insertCapsule.rows[0].id;
@@ -79,7 +79,7 @@ router.get('/:id', async (req, res) => {
   try {
     const capsuleResult = await pool.query(
       `
-      SELECT id, image_url, title, description, season_1, season_2
+      SELECT id, image_url, title, description, season
       FROM capsulas
       WHERE id = $1
       `,
@@ -147,7 +147,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 router.put('/:id', upload.single('image'), async (req, res) => {
-  const { title, description, season1, season2 } = req.body;
+  const { title, description, season } = req.body;
   const outfitIds = req.body['outfit_ids[]'] || req.body.outfit_ids || [];
   const userIds = req.body['user_ids[]'] || req.body.user_ids || [];
   const { id } = req.params;
@@ -178,10 +178,10 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     await pool.query(
       `
       UPDATE capsulas
-      SET image_url = $1, title = $2, description = $3, season_1 = $4, season_2 = $5, is_public = $6
-      WHERE id = $7
+      SET image_url = $1, title = $2, description = $3, season = $4, is_public = $5
+      WHERE id = $6
       `,
-      [image_url, title, description || '', season1, season2 || '', isPublic, id]
+      [image_url, title, description || '', season, isPublic, id]
     );
 
     const outfits = Array.isArray(outfitIds) ? outfitIds : [outfitIds];

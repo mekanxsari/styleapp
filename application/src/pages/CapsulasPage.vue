@@ -60,7 +60,7 @@ async function loadCapsulas() {
       image: `${SITE_URL}/app-images/${c.image_url}`,
       title: c.title,
       count: c.quantity,
-      season: c.season_1 + (c.season_2 ? '/' + c.season_2 : ''),
+      season: c.season,
       liked: c.liked
     })))
 

@@ -285,14 +285,10 @@
                   <label>Категория</label>
                   <select class="form-control" name="category" id="outfitCategory" required>
                     <option value="">Выберите категорию</option>
-                    <option value="Романтический">Романтический</option>
                     <option value="Повседневный">Повседневный</option>
-                    <option value="Кэжуал">Кэжуал</option>
+                    <option value="Спортивный">Рабочий</option>
                     <option value="Спортивный">Спортивный</option>
-                    <option value="Элегантный">Элегантный</option>
-                    <option value="Пляж">Пляж</option>
-                    <option value="Коктейльный">Коктейльный</option>
-                    <option value="Минималистичный">Минималистичный</option>
+                    <option value="Спортивный">Вечерний</option>
                   </select>
                 </div>
 

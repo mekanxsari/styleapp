@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
   const field = req.query.field || '';
 
   try {
-    let query = `SELECT id, image_url, title, season_1, season_2, description FROM capsulas`;
+    let query = `SELECT id, image_url, title, season, description FROM capsulas`;
     const values = [];
     let idx = 1;
 
@@ -22,19 +22,13 @@ router.get('/', async (req, res) => {
           return res.status(400).json({ message: 'Invalid search field' });
         }
 
-        if (field === 'season') {
-          query += ` WHERE (season_1 ILIKE $${idx} OR season_2 ILIKE $${idx})`;
-          values.push(`%${q}%`);
-          idx++;
-        } else if (field === 'title') {
-          query += ` WHERE title ILIKE $${idx}`;
-          values.push(`%${q}%`);
-          idx++;
-        }
+        query += ` WHERE ${field} ILIKE $${idx}`;
+        values.push(`%${q}%`);
+        idx++;
       } else {
-        query += ` WHERE (title ILIKE $${idx} OR season_1 ILIKE $${idx + 1} OR season_2 ILIKE $${idx + 2})`;
-        values.push(`%${q}%`, `%${q}%`, `%${q}%`);
-        idx += 3;
+        query += ` WHERE (title ILIKE $${idx} OR season ILIKE $${idx + 1})`;
+        values.push(`%${q}%`, `%${q}%`);
+        idx += 2;
       }
     }
 
