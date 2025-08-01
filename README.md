@@ -21,7 +21,7 @@ Designed to merge fashion with convenience — right inside Telegram.
 ### Prerequisites
 - **Node.js** (v16+ recommended)  
 - **PostgreSQL** (v12+)  
-- **Telegram Bot Token** (for the Mini App)  
+- **Telegram Bot** (for the Mini App)  
 
 ### Installation
 
